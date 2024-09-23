@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
-class SearchInput extends StatelessWidget {
+class SearchInput extends StatefulWidget {
+  const SearchInput({super.key});
+
+  @override
+  State<SearchInput> createState() => _SearchInputState();
+}
+
+class _SearchInputState extends State<SearchInput> {
   @override
   Widget build(BuildContext context) {
     return TextField(
@@ -10,7 +17,8 @@ class SearchInput extends StatelessWidget {
         hintText: 'Поиск',
         hintStyle:
             GoogleFonts.roboto(color: Colors.grey), // Цвет текста подсказки
-        prefixIcon: Icon(Icons.search, color: Colors.grey), // Иконка поиска
+        prefixIcon:
+            const Icon(Icons.search, color: Colors.grey), // Иконка поиска
         filled: true, // Включение фона
         fillColor: Colors.grey[300], // Цвет фона
         border: OutlineInputBorder(
@@ -25,7 +33,7 @@ class SearchInput extends StatelessWidget {
           borderRadius: BorderRadius.circular(10.0),
           borderSide: BorderSide.none, // Убираем обводку при фокусе
         ),
-        contentPadding: EdgeInsets.symmetric(
+        contentPadding: const EdgeInsets.symmetric(
             vertical: 5.0, horizontal: 8.0), // Настройка отступов
       ),
     );

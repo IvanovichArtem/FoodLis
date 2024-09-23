@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:food_lis/widgets/categories/categories_restaraunts_info.dart';
 import 'package:food_lis/widgets/categories/kitchens.dart';
 import 'package:food_lis/widgets/categories/search_bar.dart';
+import 'package:food_lis/widgets/modal_bottom_sheet.dart';
 
 class Categoires extends StatefulWidget {
   const Categoires({super.key});
@@ -17,21 +18,21 @@ class _CategoiresState extends State<Categoires> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CategoryAppBar(),
+      appBar: const CategoryAppBar(),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 7), // Отступ 20 пикселей сверху
+            const SizedBox(height: 7), // Отступ 20 пикселей сверху
             Center(
               child: Container(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 width: MediaQuery.of(context).size.width * 0.92,
                 decoration: BoxDecoration(
-                  color: Color(0xFFF4A261), // Цвет фона
+                  color: const Color(0xFFF4A261), // Цвет фона
                   borderRadius: BorderRadius.circular(16.0), // Скругление углов
                 ),
-                child: Column(
+                child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -54,12 +55,12 @@ class _CategoiresState extends State<Categoires> {
                 ),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
 
             // Здесь кухни
-            Padding(
+            const Padding(
               padding: EdgeInsets.symmetric(horizontal: 15),
               child: Row(
                 mainAxisAlignment:
@@ -92,7 +93,7 @@ class _CategoiresState extends State<Categoires> {
                 ],
               ),
             ),
-            Padding(
+            const Padding(
               padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
               child: Row(
                 mainAxisAlignment:
@@ -140,7 +141,7 @@ class _CategoiresState extends State<Categoires> {
                 ],
               ),
             ),
-            Padding(
+            const Padding(
               padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -175,18 +176,18 @@ class _CategoiresState extends State<Categoires> {
 
             //Специально для вас
             Padding(
-              padding: EdgeInsets.fromLTRB(15, 7, 0, 10),
+              padding: const EdgeInsets.fromLTRB(15, 7, 0, 10),
               child: Text(
                 "Специально для вас",
                 style: GoogleFonts.roboto(
-                    color: Color.fromARGB(255, 92, 92, 92),
+                    color: const Color.fromARGB(255, 92, 92, 92),
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),
             ),
 
-            PersonalizedInfoWidget(),
-            SizedBox(
+            const PersonalizedInfoWidget(),
+            const SizedBox(
               height: 15,
             ),
           ],
@@ -197,10 +198,11 @@ class _CategoiresState extends State<Categoires> {
 }
 
 class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CategoryAppBar({Key? key}) : super(key: key);
+  const CategoryAppBar({super.key});
 
   @override
-  Size get preferredSize => Size.fromHeight(120); // Увеличиваем высоту AppBar
+  Size get preferredSize =>
+      const Size.fromHeight(120); // Увеличиваем высоту AppBar
 
   @override
   Widget build(BuildContext context) {
@@ -223,14 +225,14 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
                 'Категории',
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 92, 92, 92),
+                  color: const Color.fromARGB(255, 92, 92, 92),
                   fontSize: 32,
                 ),
               ),
               Row(
                 children: [
                   IconButton(
-                    icon: FaIcon(
+                    icon: const FaIcon(
                       FontAwesomeIcons.heart,
                       color: Color.fromARGB(255, 138, 138, 142),
                     ),
@@ -242,7 +244,7 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
                     onPressed: () {},
                   ),
                   IconButton(
-                    icon: FaIcon(
+                    icon: const FaIcon(
                       FontAwesomeIcons.bell,
                       color: Color.fromARGB(255, 138, 138, 142),
                     ),
@@ -256,30 +258,36 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ],
           ),
-          SizedBox(height: 10), // Отступ между строками
+          const SizedBox(height: 10), // Отступ между строками
           // Вторая строка с поисковой строкой
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: Container(
+              const Expanded(
+                child: SizedBox(
                   height: 36,
                   child: SearchInput(), // Ваш виджет поисковой строки
                 ),
               ),
-              SizedBox(width: 8), // Промежуток между элементами
-              Container(
-                child: FaIcon(
-                  FontAwesomeIcons.sliders,
-                  color: Colors.white,
-                  size: 16,
-                ),
-                width: 36,
-                height: 36, // Фиксированная высота
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Color.fromARGB(255, 243, 175, 79),
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
+              const SizedBox(width: 8), // Промежуток между элементами
+              GestureDetector(
+                onTap: () {
+                  showCustomBottomSheet(
+                      context); // Вызываем функцию из другого файла
+                },
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 243, 175, 79),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  child: const FaIcon(
+                    FontAwesomeIcons.sliders,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                 ),
               ),
             ],

@@ -5,10 +5,10 @@ class BottomNavBar extends StatefulWidget {
   final Function(int) onItemTapped;
 
   const BottomNavBar({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onItemTapped,
-  }) : super(key: key);
+  });
 
   @override
   _BottomNavBarState createState() => _BottomNavBarState();
@@ -16,19 +16,19 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   final List<BottomNavigationBarItem> _items = [
-    BottomNavigationBarItem(
+    const BottomNavigationBarItem(
       icon: Icon(Icons.grid_view),
       label: '',
     ),
-    BottomNavigationBarItem(
+    const BottomNavigationBarItem(
       icon: Icon(Icons.location_on_outlined),
       label: '',
     ),
-    BottomNavigationBarItem(
+    const BottomNavigationBarItem(
       icon: Icon(Icons.tag_faces_sharp),
       label: '',
     ),
-    BottomNavigationBarItem(
+    const BottomNavigationBarItem(
       icon: Icon(Icons.account_circle_outlined),
       label: '',
     ),
@@ -41,15 +41,16 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 68,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderRadius: const BorderRadius.all(Radius.circular(30)),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
             blurRadius: 10.0,
             spreadRadius: 2.0,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -69,7 +70,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                       color: _selectedColor.withOpacity(1),
                     )
                   : null,
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               child: IconTheme(
                 data: IconThemeData(
                   color: isSelected ? Colors.white : _unselectedColor,

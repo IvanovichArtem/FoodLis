@@ -24,10 +24,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   final List<Widget> _pages = [
-    Categoires(),
-    Map(),
-    Chel(),
-    Profile(),
+    const Categoires(),
+    const Map(),
+    const Chel(),
+    const Profile(),
   ];
 
   @override
@@ -48,9 +48,8 @@ class _MyAppState extends State<MyApp> {
               _selectedIndex = index;
             });
           },
-          children: _pages,
-          physics:
-              const NeverScrollableScrollPhysics(), // Чтобы отключить свайпы
+          physics: const NeverScrollableScrollPhysics(),
+          children: _pages, // Чтобы отключить свайпы
         ),
         bottomNavigationBar: BottomNavBar(
           selectedIndex: _selectedIndex,
@@ -61,7 +60,7 @@ class _MyAppState extends State<MyApp> {
         splashFactory: NoSplash.splashFactory,
         scaffoldBackgroundColor: const Color.fromARGB(255, 247, 247, 247),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: const Color.fromARGB(255, 247, 247, 247),
+          backgroundColor: Color.fromARGB(255, 247, 247, 247),
           elevation: 0,
           type: BottomNavigationBarType.fixed,
           unselectedItemColor: Colors.grey,

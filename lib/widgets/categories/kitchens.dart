@@ -8,12 +8,12 @@ class KitchenItem extends StatelessWidget {
   final double width;
 
   const KitchenItem({
-    Key? key,
+    super.key,
     required this.name,
     required this.imageUrl,
     required this.width,
     required this.height,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

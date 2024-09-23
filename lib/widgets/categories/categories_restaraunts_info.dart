@@ -61,14 +61,14 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.all(Radius.circular(10))),
       child: Column(
         children: [
           // Рестораны
           Padding(
-            padding: EdgeInsets.fromLTRB(15, 15, 15, 10),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -77,18 +77,18 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                   style: GoogleFonts.roboto(
                       fontSize: 17,
                       fontWeight: FontWeight.normal,
-                      color: Color.fromARGB(255, 138, 138, 142)),
+                      color: const Color.fromARGB(255, 138, 138, 142)),
                 ),
-                Spacer(),
+                const Spacer(),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Text(
                     "Все",
                     style: GoogleFonts.roboto(
                         fontSize: 15,
                         fontWeight: FontWeight.normal,
-                        color: Color.fromARGB(255, 138, 138, 142)),
+                        color: const Color.fromARGB(255, 138, 138, 142)),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.arrow_forward_ios_outlined,
                     color: Color.fromARGB(255, 138, 138, 142),
                     size: 12,
@@ -97,7 +97,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
               ],
             ),
           ),
-          Center(
+          const Center(
             child: Divider(
               indent: 15,
               endIndent: 15,
@@ -125,7 +125,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                       ),
                       // Добавляем расстояние между элементами, кроме последнего
                       if (index < restaurantData.length - 1)
-                        SizedBox(width: 8), // Расстояние между элементами
+                        const SizedBox(width: 8), // Расстояние между элементами
                     ],
                   );
                 }).toList(),
@@ -135,7 +135,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
 
           //Блюда
           Padding(
-            padding: EdgeInsets.fromLTRB(15, 15, 15, 10),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -144,18 +144,18 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                   style: GoogleFonts.roboto(
                       fontSize: 17,
                       fontWeight: FontWeight.normal,
-                      color: Color.fromARGB(255, 138, 138, 142)),
+                      color: const Color.fromARGB(255, 138, 138, 142)),
                 ),
-                Spacer(),
+                const Spacer(),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Text(
                     "Все",
                     style: GoogleFonts.roboto(
                         fontSize: 15,
                         fontWeight: FontWeight.normal,
-                        color: Color.fromARGB(255, 138, 138, 142)),
+                        color: const Color.fromARGB(255, 138, 138, 142)),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.arrow_forward_ios_outlined,
                     color: Color.fromARGB(255, 138, 138, 142),
                     size: 12,
@@ -164,7 +164,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
               ],
             ),
           ),
-          Center(
+          const Center(
             child: Divider(
               indent: 15,
               endIndent: 15,
@@ -193,7 +193,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                       ),
                       // Добавляем расстояние между элементами, кроме последнего
                       if (index < restaurantData.length - 1)
-                        SizedBox(width: 8), // Расстояние между элементами
+                        const SizedBox(width: 8), // Расстояние между элементами
                     ],
                   );
                 }).toList(),

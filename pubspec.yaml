@@ -7,10 +7,13 @@ environment:
   sdk: ^3.5.3
 
 dependencies:
+  animations: ^2.0.11
   flutter:
     sdk: flutter
   font_awesome_flutter: ^10.7.0
   google_fonts: ^6.2.1
+  modal_bottom_sheet: ^3.0.0
+  syncfusion_flutter_sliders: ^27.1.48
   yandex_mapkit: ^4.1.0
 
 dev_dependencies:

@@ -9,13 +9,12 @@ class BookingWidget extends StatefulWidget {
   final String imgUrl;
 
   const BookingWidget(
-      {Key? key,
+      {super.key,
       required this.name,
       required this.address,
       required this.datetime,
       required this.place,
-      required this.imgUrl})
-      : super(key: key);
+      required this.imgUrl});
 
   @override
   State<BookingWidget> createState() => _BookingWidgetState();
@@ -45,9 +44,8 @@ class _BookingWidgetState extends State<BookingWidget> {
     String day = dateTime.day.toString();
     String month = months[dateTime.month - 1];
     String weekDay = weekdays[dateTime.weekday - 1];
-    String time = dateTime.hour.toString().padLeft(2, '0') +
-        ':' +
-        dateTime.minute.toString().padLeft(2, '0');
+    String time =
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
 
     return {
       'day': day,
@@ -63,7 +61,7 @@ class _BookingWidgetState extends State<BookingWidget> {
 
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
@@ -71,18 +69,18 @@ class _BookingWidgetState extends State<BookingWidget> {
         children: [
           // Адрес и share
           Padding(
-            padding: EdgeInsets.fromLTRB(17, 15, 18, 0),
+            padding: const EdgeInsets.fromLTRB(17, 15, 18, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   widget.name,
                   style: GoogleFonts.roboto(
-                      color: Color.fromARGB(255, 138, 138, 142),
+                      color: const Color.fromARGB(255, 138, 138, 142),
                       fontSize: 17,
                       fontWeight: FontWeight.w400),
                 ),
-                Icon(
+                const Icon(
                   Icons.share_outlined,
                   color: Color.fromARGB(255, 138, 138, 142),
                   size: 18,
@@ -91,7 +89,7 @@ class _BookingWidgetState extends State<BookingWidget> {
             ),
           ),
           // Разделитель
-          Padding(
+          const Padding(
             padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
             child: Divider(
               height: 1,
@@ -102,7 +100,7 @@ class _BookingWidgetState extends State<BookingWidget> {
           ),
           // Информация
           Padding(
-            padding: EdgeInsets.fromLTRB(17, 12, 0, 0),
+            padding: const EdgeInsets.fromLTRB(17, 12, 0, 0),
             child: Row(
               children: [
                 Column(
@@ -118,7 +116,7 @@ class _BookingWidgetState extends State<BookingWidget> {
                     )
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
                 Column(
@@ -127,40 +125,40 @@ class _BookingWidgetState extends State<BookingWidget> {
                     //адрес
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.location_on_outlined,
                           color: Color.fromARGB(255, 243, 175, 79),
                           size: 22,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 7,
                         ),
-                        Container(
+                        SizedBox(
                           width: 180,
                           child: Text(
                             widget.address,
                             style: GoogleFonts.roboto(
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
-                              color: Color.fromARGB(255, 138, 138, 142),
+                              color: const Color.fromARGB(255, 138, 138, 142),
                             ),
                             softWrap: true,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 8,
                     ),
                     //дата
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.calendar_today_outlined,
                           color: Color.fromARGB(255, 243, 175, 79),
                           size: 20,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 7,
                         ),
                         Text(
@@ -172,23 +170,23 @@ class _BookingWidgetState extends State<BookingWidget> {
                           style: GoogleFonts.roboto(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: Color.fromARGB(255, 138, 138, 142),
+                            color: const Color.fromARGB(255, 138, 138, 142),
                           ),
                         )
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 8,
                     ),
                     //время и место
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.access_time,
                           color: Color.fromARGB(255, 243, 175, 79),
                           size: 20,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 7,
                         ),
                         Text(
@@ -196,17 +194,17 @@ class _BookingWidgetState extends State<BookingWidget> {
                           style: GoogleFonts.roboto(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: Color.fromARGB(255, 138, 138, 142),
+                            color: const Color.fromARGB(255, 138, 138, 142),
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 7,
                         ),
-                        Icon(
+                        const Icon(
                           Icons.table_restaurant,
                           color: Color.fromARGB(255, 243, 175, 79),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 7,
                         ),
                         Text(
@@ -214,7 +212,7 @@ class _BookingWidgetState extends State<BookingWidget> {
                           style: GoogleFonts.roboto(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: Color.fromARGB(255, 138, 138, 142),
+                            color: const Color.fromARGB(255, 138, 138, 142),
                           ),
                         ),
                       ],
@@ -226,12 +224,12 @@ class _BookingWidgetState extends State<BookingWidget> {
           ),
           // Кнопка
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 10),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
             child: ElevatedButton(
                 onPressed: () => {},
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 243, 175, 79)),
-                child: Container(
+                    backgroundColor: const Color.fromARGB(255, 243, 175, 79)),
+                child: SizedBox(
                   width: double.infinity, // Займет всю доступную ширину
                   child: Text(
                     "Построить маршрут",

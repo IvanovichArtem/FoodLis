@@ -26,14 +26,14 @@ class _DishCardState extends State<DishCard> {
     return Container(
       width: 140,
       height: 196,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
       child: Stack(
         children: [
           ClipRRect(
             borderRadius:
-                BorderRadius.all(Radius.circular(10)), // Добавьте радиус
+                const BorderRadius.all(Radius.circular(10)), // Добавьте радиус
             child: Image.asset(
               widget.imageUrl,
               fit: BoxFit.cover,
@@ -48,16 +48,16 @@ class _DishCardState extends State<DishCard> {
             right: 0,
             height: 64,
             child: ClipRRect(
-              borderRadius: BorderRadius.vertical(
+              borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(10)), // Добавьте радиус
               child: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Color.fromRGBO(135, 135, 139, 0.95),
                 ),
                 child: Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+                      padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
                       child: Row(
                         children: [
                           Expanded(
@@ -76,13 +76,13 @@ class _DishCardState extends State<DishCard> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+                      padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
                       child: Row(
                         children: [
                           Text(
                             widget.restaraunt,
                             style: GoogleFonts.roboto(
-                              color: Color.fromARGB(255, 191, 191, 191),
+                              color: const Color.fromARGB(255, 191, 191, 191),
                               fontWeight: FontWeight.w400,
                               fontSize: 14,
                             ),
@@ -91,7 +91,7 @@ class _DishCardState extends State<DishCard> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
+                      padding: const EdgeInsets.fromLTRB(8, 0, 0, 0),
                       child: Row(
                         children: [
                           Text(
@@ -102,14 +102,14 @@ class _DishCardState extends State<DishCard> {
                               fontSize: 12,
                             ),
                           ),
-                          SizedBox(width: 1),
-                          Icon(
+                          const SizedBox(width: 1),
+                          const Icon(
                             Icons.star_rounded,
                             color: Colors.white,
                             size: 10,
                           ),
                           Text(
-                            "  " + widget.review_count.toString() + " отзыва",
+                            "  ${widget.review_count} отзыва",
                             style: GoogleFonts.roboto(
                               color: Colors.white,
                               fontSize: 12,

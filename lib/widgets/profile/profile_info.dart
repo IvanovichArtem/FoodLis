@@ -35,31 +35,32 @@ class _ProfileInfoState extends State<ProfileInfo> {
     double imageSize = screenWidth * 2 / 3;
 
     return Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.all(Radius.circular(10))),
         child: Padding(
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Row(children: [
-                SizedBox(
+                const SizedBox(
                   width: 15,
                 ),
                 Text(
-                  widget.name + " " + widget.surname,
+                  "${widget.name} ${widget.surname}",
                   style: GoogleFonts.roboto(
-                      color: Color.fromARGB(255, 138, 138, 142),
+                      color: const Color.fromARGB(255, 138, 138, 142),
                       fontSize: 17,
                       fontWeight: FontWeight.w400),
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 6,
                 ),
-                Row(
+                const Row(
                   children: [
                     Icon(
                       Icons.edit_outlined,
@@ -71,19 +72,19 @@ class _ProfileInfoState extends State<ProfileInfo> {
               ]),
               Row(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 15,
                   ),
                   Text(
                     widget.phone,
                     style: GoogleFonts.roboto(
-                        color: Color.fromARGB(255, 191, 191, 191),
+                        color: const Color.fromARGB(255, 191, 191, 191),
                         fontSize: 12),
                   ),
                 ],
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               // изображение
@@ -102,16 +103,17 @@ class _ProfileInfoState extends State<ProfileInfo> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8.0), // Отступы между элементами
                     child: Text(
-                      "#" + category,
+                      "#$category",
                       style: GoogleFonts.roboto(
                         fontSize: 12,
-                        color: Color.fromARGB(255, 138, 138, 142), // Цвет серый
+                        color: const Color.fromARGB(
+                            255, 138, 138, 142), // Цвет серый
                       ),
                     ),
                   );
                 }).toList(),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 15,
               ),
               Row(
@@ -120,58 +122,58 @@ class _ProfileInfoState extends State<ProfileInfo> {
                   Container(
                       height: 66,
                       width: 165,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                           color: Color.fromARGB(255, 239, 239, 239)),
                       child: Column(
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             height: 6,
                           ),
                           Row(
                             children: [
-                              SizedBox(
+                              const SizedBox(
                                 width: 9,
                               ),
-                              Text("Уровень " + widget.level,
+                              Text("Уровень ${widget.level}",
                                   style: GoogleFonts.roboto(
                                     fontSize: 14,
                                     color:
                                         const Color.fromARGB(255, 92, 92, 92),
                                   )),
-                              Spacer(),
-                              Icon(Icons.arrow_forward_ios_rounded,
+                              const Spacer(),
+                              const Icon(Icons.arrow_forward_ios_rounded,
                                   size: 14,
-                                  color: const Color.fromARGB(255, 92, 92, 92)),
-                              SizedBox(
+                                  color: Color.fromARGB(255, 92, 92, 92)),
+                              const SizedBox(
                                 width: 10,
                               )
                             ],
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
 
                           // TODO: медальки
                         ],
                       )),
-                  SizedBox(
+                  const SizedBox(
                     width: 20,
                   ),
                   Container(
                       height: 66,
                       width: 165,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                           color: Color.fromARGB(255, 239, 239, 239)),
                       child: Column(
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             height: 6,
                           ),
                           Row(
                             children: [
-                              SizedBox(
+                              const SizedBox(
                                 width: 9,
                               ),
                               Text("Баллы",
@@ -180,20 +182,20 @@ class _ProfileInfoState extends State<ProfileInfo> {
                                     color:
                                         const Color.fromARGB(255, 92, 92, 92),
                                   )),
-                              Spacer(),
-                              Icon(Icons.arrow_forward_ios_rounded,
+                              const Spacer(),
+                              const Icon(Icons.arrow_forward_ios_rounded,
                                   size: 14,
-                                  color: const Color.fromARGB(255, 92, 92, 92)),
-                              SizedBox(
+                                  color: Color.fromARGB(255, 92, 92, 92)),
+                              const SizedBox(
                                 width: 10,
                               )
                             ],
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
                           Row(children: [
-                            SizedBox(
+                            const SizedBox(
                               width: 10,
                             ),
                             Text(
@@ -202,18 +204,17 @@ class _ProfileInfoState extends State<ProfileInfo> {
                                   fontSize: 17,
                                   color: const Color.fromARGB(255, 92, 92, 92)),
                             ),
-                            Spacer()
+                            const Spacer()
                           ])
                         ],
                       ))
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
             ],
           ),
-          padding: EdgeInsets.zero,
         ));
   }
 }

@@ -11,17 +11,17 @@ class Chel extends StatefulWidget {
 class _ChelState extends State<Chel> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       appBar: ChelAppBar(),
     );
   }
 }
 
 class ChelAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const ChelAppBar({Key? key}) : super(key: key);
+  const ChelAppBar({super.key});
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class ChelAppBar extends StatelessWidget implements PreferredSizeWidget {
         'Пока пусто',
         style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
       ),
-      actions: [],
+      actions: const [],
     );
   }
 }

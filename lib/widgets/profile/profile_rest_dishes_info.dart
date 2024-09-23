@@ -61,14 +61,14 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.all(Radius.circular(10))),
       child: Column(
         children: [
           // Рестораны
           Padding(
-            padding: EdgeInsets.fromLTRB(15, 12, 15, 10),
+            padding: const EdgeInsets.fromLTRB(15, 12, 15, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -77,20 +77,22 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
                   style: GoogleFonts.roboto(
                       fontSize: 17,
                       fontWeight: FontWeight.normal,
-                      color: Color.fromARGB(255, 138, 138, 142)),
+                      color: const Color.fromARGB(255, 138, 138, 142)),
                 ),
-                Spacer(),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(
-                    Icons.more_vert,
-                    color: Color.fromARGB(255, 138, 138, 142),
-                    size: 18,
-                  )
-                ])
+                const Spacer(),
+                const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.more_vert,
+                        color: Color.fromARGB(255, 138, 138, 142),
+                        size: 18,
+                      )
+                    ])
               ],
             ),
           ),
-          Center(
+          const Center(
             child: Divider(
               indent: 15,
               endIndent: 15,
@@ -117,7 +119,7 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
                       ),
                       // Добавляем расстояние между элементами, кроме последнего
                       if (index < restaurantData.length - 1)
-                        SizedBox(width: 8), // Расстояние между элементами
+                        const SizedBox(width: 8), // Расстояние между элементами
                     ],
                   );
                 }).toList(),
@@ -127,7 +129,7 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
 
           //Блюда
           Padding(
-            padding: EdgeInsets.fromLTRB(15, 15, 15, 10),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -136,20 +138,22 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
                   style: GoogleFonts.roboto(
                       fontSize: 17,
                       fontWeight: FontWeight.normal,
-                      color: Color.fromARGB(255, 138, 138, 142)),
+                      color: const Color.fromARGB(255, 138, 138, 142)),
                 ),
-                Spacer(),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(
-                    Icons.more_vert,
-                    color: Color.fromARGB(255, 138, 138, 142),
-                    size: 18,
-                  )
-                ])
+                const Spacer(),
+                const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.more_vert,
+                        color: Color.fromARGB(255, 138, 138, 142),
+                        size: 18,
+                      )
+                    ])
               ],
             ),
           ),
-          Center(
+          const Center(
             child: Divider(
               indent: 15,
               endIndent: 15,
@@ -178,7 +182,7 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
                       ),
                       // Добавляем расстояние между элементами, кроме последнего
                       if (index < restaurantData.length - 1)
-                        SizedBox(width: 8), // Расстояние между элементами
+                        const SizedBox(width: 8), // Расстояние между элементами
                     ],
                   );
                 }).toList(),

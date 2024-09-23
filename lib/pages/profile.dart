@@ -16,13 +16,13 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ProfileAppBar(),
+      appBar: const ProfileAppBar(),
       body: SingleChildScrollView(
         // Оборачиваем в SingleChildScrollView
         child: Column(
           children: [
-            SizedBox(height: 10),
-            ProfileInfo(
+            const SizedBox(height: 10),
+            const ProfileInfo(
               profileImageUrl: 'assets/images/fox.jpg',
               name: 'Анна',
               surname: 'Смирнова',
@@ -31,16 +31,16 @@ class _ProfileState extends State<Profile> {
               categories: ['азиатская кухня', 'роллы', 'коктейли', 'бары'],
               level: '3',
             ),
-            SizedBox(height: 10),
-            Container(
+            const SizedBox(height: 10),
+            SizedBox(
               width: double.infinity,
               height: 50,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(10, 12, 0, 0),
+                padding: const EdgeInsets.fromLTRB(10, 12, 0, 0),
                 child: Text(
                   "Бронирования",
                   style: GoogleFonts.roboto(
-                    color: Color.fromARGB(255, 92, 92, 92),
+                    color: const Color.fromARGB(255, 92, 92, 92),
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -55,18 +55,18 @@ class _ProfileState extends State<Profile> {
               imgUrl: 'assets/images/booking/hookahplace.jpg',
             ),
             Padding(
-                padding: EdgeInsets.fromLTRB(16, 24, 0, 12),
+                padding: const EdgeInsets.fromLTRB(16, 24, 0, 12),
                 child: Row(children: [
                   Text(
                     "Мой рейтинг",
                     style: GoogleFonts.roboto(
-                        color: Color.fromARGB(255, 92, 92, 92),
+                        color: const Color.fromARGB(255, 92, 92, 92),
                         fontSize: 20,
                         fontWeight: FontWeight.w700),
                   ),
                 ])),
-            ProfileRestDishInfo(),
-            SizedBox(
+            const ProfileRestDishInfo(),
+            const SizedBox(
               height: 10,
             ),
           ],
@@ -77,10 +77,10 @@ class _ProfileState extends State<Profile> {
 }
 
 class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const ProfileAppBar({Key? key}) : super(key: key);
+  const ProfileAppBar({super.key});
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
@@ -91,12 +91,12 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
         'Профиль',
         style: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 92, 92, 92),
+            color: const Color.fromARGB(255, 92, 92, 92),
             fontSize: 32),
       ),
       actions: [
         IconButton(
-          icon: FaIcon(FontAwesomeIcons.bell,
+          icon: const FaIcon(FontAwesomeIcons.bell,
               color: Color.fromARGB(255, 138, 138, 142)),
           onPressed: () {},
         ),
