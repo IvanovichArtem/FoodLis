@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "791450930167",
+    "firebase_url": "https://foodlis-46435-default-rtdb.firebaseio.com",
+    "project_id": "foodlis-46435",
+    "storage_bucket": "foodlis-46435.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791450930167:android:5606a15754605b5d8cfcf2",
+        "android_client_info": {
+          "package_name": "com.example.food_lis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOoomd6cIIp3aGCc71LyZ8zEI7wyKiFg4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

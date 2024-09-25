@@ -15,6 +15,11 @@ dependencies:
   modal_bottom_sheet: ^3.0.0
   syncfusion_flutter_sliders: ^27.1.48
   yandex_mapkit: ^4.1.0
+  firebase_auth: ^5.3.0
+  firebase_storage: ^12.3.1
+  firebase_messaging: ^15.1.2
+  firebase_core: ^3.5.0
+  cloud_firestore: ^5.4.2
 
 dev_dependencies:
   flutter_test:
