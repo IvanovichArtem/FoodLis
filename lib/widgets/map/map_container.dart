@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:location/location.dart'; // Для получения текущего местоположения
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MapContainer extends StatefulWidget {
   const MapContainer({super.key});
@@ -73,29 +74,44 @@ class _MapContainerState extends State<MapContainer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: YandexMap(
-        logoAlignment: MapAlignment(
-            horizontal: HorizontalAlignment.left,
-            vertical: VerticalAlignment.bottom),
-        onMapCreated: (YandexMapController controller) {
-          _controller = controller;
-          // Переместите камеру на начальную позицию (например, Минск)
-          _controller.moveCamera(
-            CameraUpdate.newCameraPosition(
-              const CameraPosition(
-                target: Point(latitude: 53.9, longitude: 27.5667), // Минск
-                zoom: 13,
+      body: Stack(
+        children: [
+          YandexMap(
+            logoAlignment: MapAlignment(
+              horizontal: HorizontalAlignment.left,
+              vertical: VerticalAlignment.bottom,
+            ),
+            onMapCreated: (YandexMapController controller) {
+              _controller = controller;
+              // Переместите камеру на начальную позицию (например, Минск)
+              _controller.moveCamera(
+                CameraUpdate.newCameraPosition(
+                  const CameraPosition(
+                    target: Point(latitude: 53.9, longitude: 27.5667), // Минск
+                    zoom: 13,
+                  ),
+                ),
+              );
+            },
+            onMapTap: _onMapTap, // Устанавливаем обработчик нажатий на карту
+            mapObjects: _mapObjects, // Передаем список маркеров на карту
+          ),
+          Align(
+            alignment: Alignment
+                .bottomRight, // Здесь настраиваем позицию FloatingActionButton
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  0, 0, 16, 113), // Отступ от края экрана
+              child: FloatingActionButton(
+                backgroundColor: Colors.white,
+                onPressed: _moveToCurrentLocation,
+                child: const FaIcon(FontAwesomeIcons.locationArrow,
+                    color:
+                        Color.fromARGB(255, 243, 175, 78)), // Иконка для кнопки
               ),
             ),
-          );
-        },
-        onMapTap: _onMapTap, // Устанавливаем обработчик нажатий на карту
-        mapObjects: _mapObjects, // Передаем список маркеров на карту
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _moveToCurrentLocation,
-        child: Icon(Icons
-            .my_location), // Иконка для перемещения на текущее местоположение
+          ),
+        ],
       ),
     );
   }
