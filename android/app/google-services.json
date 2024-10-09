@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "231088823155",
+    "project_id": "foodlis-1f062",
+    "storage_bucket": "foodlis-1f062.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:231088823155:android:25ed626e518380f6fcc306",
+        "android_client_info": {
+          "package_name": "com.android.application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrEZs_NyE9fmh4okV6mzwpjCl8ZB_C1IM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

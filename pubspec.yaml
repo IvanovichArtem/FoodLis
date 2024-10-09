@@ -1,0 +1,38 @@
+name: food_lis
+description: "A new Flutter project."
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  font_awesome_flutter: ^10.7.0
+  google_fonts: ^6.2.1
+  modal_bottom_sheet: ^3.0.0
+  syncfusion_flutter_sliders: ^27.1.48
+  flutter_svg: ^2.0.10+1
+  yandex_mapkit: ^4.1.0
+  youtube_player_flutter: ^9.1.0
+  location: ^6.0.2
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/restaraunts/
+    - assets/images/dishes/
+    - assets/images/kitchens/
+    - assets/images/booking/
+    - assets/svg/
+    - assets/images/fox.jpg
+    - assets/images/error_page.svg
