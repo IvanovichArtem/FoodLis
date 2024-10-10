@@ -68,25 +68,21 @@ class _CategoiresState extends State<Categoires> {
                 children: [
                   KitchenItem(
                     name: 'Завтрак',
-                    imageUrl: 'assets/images/kitchens/завтрак.jpg',
                     width: 73,
                     height: 73,
                   ),
                   KitchenItem(
                     name: 'Бранч',
-                    imageUrl: 'assets/images/kitchens/бранч.jpg',
                     width: 73,
                     height: 73,
                   ),
                   KitchenItem(
                     name: 'Обед',
-                    imageUrl: 'assets/images/kitchens/обед.jpg',
                     width: 73,
                     height: 73,
                   ),
                   KitchenItem(
                     name: 'Ужин',
-                    imageUrl: 'assets/images/kitchens/ужин.jpg',
                     width: 73,
                     height: 73,
                   ),
@@ -103,7 +99,6 @@ class _CategoiresState extends State<Categoires> {
                     children: [
                       KitchenItem(
                         name: 'Азиатская кухня',
-                        imageUrl: 'assets/images/kitchens/азиатская кухня.jpg',
                         width: 158,
                         height: 170,
                       ),
@@ -112,7 +107,6 @@ class _CategoiresState extends State<Categoires> {
                       ),
                       KitchenItem(
                         name: 'Pet friendly',
-                        imageUrl: 'assets/images/kitchens/пет.jpg',
                         width: 158,
                         height: 73,
                       ),
@@ -122,7 +116,6 @@ class _CategoiresState extends State<Categoires> {
                     children: [
                       KitchenItem(
                         name: 'Терасса',
-                        imageUrl: 'assets/images/kitchens/терассы.jpg',
                         width: 158,
                         height: 73,
                       ),
@@ -131,8 +124,6 @@ class _CategoiresState extends State<Categoires> {
                       ),
                       KitchenItem(
                         name: 'Итальянская кухня',
-                        imageUrl:
-                            'assets/images/kitchens/итальянская кухня.jpg',
                         width: 158,
                         height: 170,
                       ),
@@ -148,25 +139,21 @@ class _CategoiresState extends State<Categoires> {
                 children: [
                   KitchenItem(
                     name: 'Кофе',
-                    imageUrl: 'assets/images/kitchens/кофе.jpg',
                     width: 73,
                     height: 73,
                   ),
                   KitchenItem(
                     name: 'Пиво',
-                    imageUrl: 'assets/images/kitchens/пиво.jpg',
                     width: 73,
                     height: 73,
                   ),
                   KitchenItem(
                     name: 'Коктейли',
-                    imageUrl: 'assets/images/kitchens/коктейли.jpg',
                     width: 73,
                     height: 73,
                   ),
                   KitchenItem(
                     name: '24 часа',
-                    imageUrl: 'assets/images/kitchens/24.jpg',
                     width: 73,
                     height: 73,
                   ),

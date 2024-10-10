@@ -274,7 +274,7 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class ListScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> data; // Добавляем список данных
+  final List<Map<String, dynamic>> data;
 
   const ListScreen({super.key, required this.data});
 

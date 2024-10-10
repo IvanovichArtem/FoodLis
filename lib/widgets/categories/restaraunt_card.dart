@@ -8,12 +8,13 @@ class RestarauntCard extends StatefulWidget {
   final int reviewCount;
   final String imageUrl;
 
-  const RestarauntCard(
-      {super.key,
-      required this.name,
-      required this.rating,
-      required this.reviewCount,
-      required this.imageUrl});
+  const RestarauntCard({
+    super.key,
+    required this.name,
+    required this.rating,
+    required this.reviewCount,
+    required this.imageUrl,
+  });
 
   @override
   State<RestarauntCard> createState() => _RestarauntCardState();
@@ -24,9 +25,11 @@ class _RestarauntCardState extends State<RestarauntCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        showCustomBottomSheet(context,
-            name: widget.name,
-            imageUrl: widget.imageUrl); // Вызываем функцию из другого файла
+        showCustomBottomSheet(
+          context,
+          name: widget.name,
+          imageUrl: widget.imageUrl,
+        );
       },
       child: Container(
         width: 140,
@@ -37,24 +40,40 @@ class _RestarauntCardState extends State<RestarauntCard> {
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.all(
-                  Radius.circular(10)), // Добавьте радиус
-              child: Image.asset(
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
+              child: Image.network(
                 widget.imageUrl,
                 width: 140,
                 fit: BoxFit.fill,
                 height: 300,
                 alignment: Alignment.topCenter,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Color.fromARGB(255, 243, 175, 79),
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              (loadingProgress.expectedTotalBytes ?? 1)
+                          : null,
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.error,
+                  color: Colors.red,
+                ),
               ),
             ),
             Positioned(
-              bottom: 0, // Позиционирование снизу
+              bottom: 0,
               left: 0,
               right: 0,
               height: 48,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(10)), // Добавьте радиус
+                  bottom: Radius.circular(10),
+                ),
                 child: Container(
                   decoration: const BoxDecoration(
                     color: Color.fromRGBO(135, 135, 139, 0.95),

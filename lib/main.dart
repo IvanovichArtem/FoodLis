@@ -48,7 +48,10 @@ class AuthWrapper extends StatelessWidget {
         // Проверяем, авторизован ли пользователь
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()), // Загрузка данных
+            body: Center(
+                child: CircularProgressIndicator(
+              color: Color.fromARGB(255, 243, 175, 79),
+            )), // Загрузка данных
           );
         } else if (snapshot.hasData) {
           // Если пользователь авторизован, показываем главное приложение

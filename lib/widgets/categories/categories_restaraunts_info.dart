@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:food_lis/widgets/categories/restaraunt_card.dart';
@@ -12,58 +14,77 @@ class PersonalizedInfoWidget extends StatefulWidget {
 }
 
 class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
-  List<Map<String, dynamic>> restaurantData = [
-    {
-      'name': 'У Веры',
-      'rating': 4.2,
-      'review_count': 64,
-      'imageUrl': 'assets/images/restaraunts/у веры.jpg',
-    },
-    {
-      'name': 'Greeny',
-      'rating': 4.3,
-      'review_count': 38,
-      'imageUrl': 'assets/images/restaraunts/greeny.jpg',
-    },
-    {
-      'name': 'Проспект',
-      'rating': 5.0,
-      'review_count': 12,
-      'imageUrl': 'assets/images/restaraunts/Проспект.jpg',
-    },
-  ];
+  List<Map<String, dynamic>> restaurantData = [];
+  List<Map<String, dynamic>> dishData = []; // Placeholder for dish data
 
-  List<Map<String, dynamic>> dishData = [
-    {
-      'name': 'Перепелка',
-      'restaraunt': 'Мамомимо',
-      'rating': 4.2,
-      'review_count': 8,
-      'imageUrl': 'assets/images/dishes/перепелка.jpg',
-    },
-    {
-      'name': 'Курица с красной смородиной',
-      'restaraunt': 'Prime',
-      'rating': 4.3,
-      'review_count': 4,
-      'imageUrl': 'assets/images/dishes/курица.jpg',
-    },
-    {
-      'name': 'Шакшука',
-      'restaraunt': 'Мимино',
-      'rating': 4.5,
-      'review_count': 11,
-      'imageUrl': 'assets/images/dishes/шакшука.jpg',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchRestaurantData();
+    fetchDishData();
+  }
+
+  Future<void> fetchRestaurantData() async {
+    try {
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('restaraunts').get();
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final storagePath = data['imageUrl'];
+
+        final downloadUrl =
+            await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
+
+        restaurantData.add({
+          'name': data['name'],
+          'rating': data['avgReview'],
+          'review_count': data['cntReviews'],
+          'imageUrl': downloadUrl,
+        });
+      }
+
+      setState(() {});
+    } catch (e) {
+      print('Error fetching restaurant data: $e');
+    }
+  }
+
+  Future<void> fetchDishData() async {
+    try {
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('dishes').get();
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final storagePath = data['imageUrl'];
+
+        final downloadUrl =
+            await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
+
+        dishData.add({
+          'name': data['name'],
+          'restaraunt': data['restaraunt'],
+          'rating': data['rating'],
+          'review_count': data['reviewCount'],
+          'imageUrl': downloadUrl,
+        });
+      }
+
+      setState(() {});
+    } catch (e) {
+      print('Error fetching dish data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(10))),
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+      ),
       child: Column(
         children: [
           // Рестораны
@@ -75,25 +96,30 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                 Text(
                   "Рестораны",
                   style: GoogleFonts.montserrat(
-                      fontSize: 17,
-                      fontWeight: FontWeight.normal,
-                      color: const Color.fromARGB(255, 138, 138, 142)),
+                    fontSize: 17,
+                    fontWeight: FontWeight.normal,
+                    color: const Color.fromARGB(255, 138, 138, 142),
+                  ),
                 ),
                 const Spacer(),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(
-                    "Все",
-                    style: GoogleFonts.montserrat(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Все",
+                      style: GoogleFonts.montserrat(
                         fontSize: 15,
                         fontWeight: FontWeight.normal,
-                        color: const Color.fromARGB(255, 138, 138, 142)),
-                  ),
-                  const Icon(
-                    Icons.arrow_forward_ios_outlined,
-                    color: Color.fromARGB(255, 138, 138, 142),
-                    size: 12,
-                  )
-                ])
+                        color: const Color.fromARGB(255, 138, 138, 142),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_outlined,
+                      color: Color.fromARGB(255, 138, 138, 142),
+                      size: 12,
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -108,8 +134,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  10, 8, 5, 0), // Укажите нужные отступы
+              padding: const EdgeInsets.fromLTRB(10, 8, 5, 0),
               child: Row(
                 children: restaurantData.asMap().entries.map((entry) {
                   final restaurant = entry.value;
@@ -119,21 +144,19 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                     children: [
                       RestarauntCard(
                         name: restaurant['name'],
-                        rating: restaurant['rating'],
+                        rating: restaurant['rating'].toDouble(),
                         reviewCount: restaurant['review_count'],
                         imageUrl: restaurant['imageUrl'],
                       ),
-                      // Добавляем расстояние между элементами, кроме последнего
                       if (index < restaurantData.length - 1)
-                        const SizedBox(width: 8), // Расстояние между элементами
+                        const SizedBox(width: 8),
                     ],
                   );
                 }).toList(),
               ),
             ),
           ),
-
-          //Блюда
+          // Additional widgets, like dish data, can be added here
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 15, 15, 10),
             child: Row(
@@ -142,25 +165,30 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                 Text(
                   "Блюда",
                   style: GoogleFonts.montserrat(
-                      fontSize: 17,
-                      fontWeight: FontWeight.normal,
-                      color: const Color.fromARGB(255, 138, 138, 142)),
+                    fontSize: 17,
+                    fontWeight: FontWeight.normal,
+                    color: const Color.fromARGB(255, 138, 138, 142),
+                  ),
                 ),
                 const Spacer(),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(
-                    "Все",
-                    style: GoogleFonts.montserrat(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Все",
+                      style: GoogleFonts.montserrat(
                         fontSize: 15,
                         fontWeight: FontWeight.normal,
-                        color: const Color.fromARGB(255, 138, 138, 142)),
-                  ),
-                  const Icon(
-                    Icons.arrow_forward_ios_outlined,
-                    color: Color.fromARGB(255, 138, 138, 142),
-                    size: 12,
-                  )
-                ])
+                        color: const Color.fromARGB(255, 138, 138, 142),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_outlined,
+                      color: Color.fromARGB(255, 138, 138, 142),
+                      size: 12,
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -175,8 +203,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  10, 8, 5, 0), // Укажите нужные отступы
+              padding: const EdgeInsets.fromLTRB(10, 8, 5, 0),
               child: Row(
                 children: dishData.asMap().entries.map((entry) {
                   final dish = entry.value;
@@ -191,9 +218,8 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                         review_count: dish['review_count'],
                         imageUrl: dish['imageUrl'],
                       ),
-                      // Добавляем расстояние между элементами, кроме последнего
                       if (index < restaurantData.length - 1)
-                        const SizedBox(width: 8), // Расстояние между элементами
+                        const SizedBox(width: 8),
                     ],
                   );
                 }).toList(),

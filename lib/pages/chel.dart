@@ -20,8 +20,9 @@ class _ChelState extends State<Chel> {
           height:
               300, // Задал размеры, чтобы изображение не выходило за границы
           semanticsLabel: 'Ошибка', // Альтернативный текст для доступности
-          placeholderBuilder: (context) =>
-              const CircularProgressIndicator(), // Пока загружается
+          placeholderBuilder: (context) => const CircularProgressIndicator(
+            color: Color.fromARGB(255, 243, 175, 79),
+          ), // Пока загружается
         ),
       ),
     );

@@ -50,7 +50,7 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                       ClipRRect(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10)),
-                        child: Image.asset(
+                        child: Image.network(
                           widget.imageUrl,
                           fit: BoxFit.fitWidth,
                           width: double.infinity,

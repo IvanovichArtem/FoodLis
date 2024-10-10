@@ -34,7 +34,7 @@ class _DishCardState extends State<DishCard> {
           ClipRRect(
             borderRadius:
                 const BorderRadius.all(Radius.circular(10)), // Добавьте радиус
-            child: Image.asset(
+            child: Image.network(
               widget.imageUrl,
               fit: BoxFit.cover,
               height: 300,
