@@ -26,9 +26,6 @@ class _ProfileState extends State<Profile> {
             const SizedBox(height: 10),
             const ProfileInfo(
               profileImageUrl: 'assets/images/fox.jpg',
-              name: 'Анна',
-              surname: 'Смирнова',
-              phone: '+375336639162',
               scores: 45,
               categories: ['азиатская кухня', 'роллы', 'коктейли', 'бары'],
               level: '3',

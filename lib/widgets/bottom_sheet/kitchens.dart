@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class KitchensFilterWidget extends StatefulWidget {
   const KitchensFilterWidget({super.key});
@@ -37,33 +39,27 @@ class _KitchensFilterWidgetState extends State<KitchensFilterWidget> {
             children: const [
               KitchenItem(
                 name: 'Азиатская',
-                imageUrl1: 'assets/images/kitchens/азиатская.jpg',
-                imageUrl2: 'assets/images/kitchens/азиатская_анимация.jpg',
+                imageUrl: 'images/kitchens/азиатская.jpg',
               ),
               KitchenItem(
                 name: 'Итальянская',
-                imageUrl1: 'assets/images/kitchens/итальянская кухня_2.jpg',
-                imageUrl2: 'assets/images/kitchens/итальянская кухня_2.jpg',
+                imageUrl: 'images/kitchens/итальянская кухня_2.jpg',
               ),
               KitchenItem(
                 name: 'Грузинская',
-                imageUrl1: 'assets/images/kitchens/грузинская.jpg',
-                imageUrl2: 'assets/images/kitchens/грузинская.jpg',
+                imageUrl: 'images/kitchens/грузинская.jpg',
               ),
               KitchenItem(
                 name: 'Мексиканская',
-                imageUrl1: 'assets/images/kitchens/мексиканская.jpg',
-                imageUrl2: 'assets/images/kitchens/мексиканская.jpg',
+                imageUrl: 'images/kitchens/мексиканская.jpg',
               ),
               KitchenItem(
                 name: 'Белорусская',
-                imageUrl1: 'assets/images/kitchens/белорусская.jpg',
-                imageUrl2: 'assets/images/kitchens/белорусская.jpg',
+                imageUrl: 'images/kitchens/белорусская.jpg',
               ),
               KitchenItem(
                 name: 'Вегетарианская',
-                imageUrl1: 'assets/images/kitchens/вегетарианская.jpg',
-                imageUrl2: 'assets/images/kitchens/вегетарианская.jpg',
+                imageUrl: 'images/kitchens/вегетарианская.jpg',
               ),
             ],
           ),
@@ -75,15 +71,12 @@ class _KitchensFilterWidgetState extends State<KitchensFilterWidget> {
 
 class KitchenItem extends StatefulWidget {
   final String name;
-  final String imageUrl1; // Первый путь к изображению
-  final String imageUrl2; // Второй путь к изображению
-  // TODO: Начать делать анимацию
+  final String imageUrl; // Путь к изображению в Firebase Storage
 
   const KitchenItem({
     super.key,
     required this.name,
-    required this.imageUrl1,
-    required this.imageUrl2,
+    required this.imageUrl,
   });
 
   @override
@@ -91,29 +84,47 @@ class KitchenItem extends StatefulWidget {
 }
 
 class _KitchenItemState extends State<KitchenItem> {
-  bool _showFirstImage = true;
+  String? _imageUrl;
 
-  void _toggleImage() {
-    setState(() {
-      _showFirstImage = !_showFirstImage;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  Future<void> _loadImage() async {
+    // Получаем ссылку на изображение из Firebase Storage
+    try {
+      String downloadUrl =
+          await FirebaseStorage.instance.ref(widget.imageUrl).getDownloadURL();
+      setState(() {
+        _imageUrl = downloadUrl;
+      });
+    } catch (e) {
+      print('Ошибка загрузки изображения: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _toggleImage, // Переключение изображения при нажатии
+      onTap: () {}, // Вы можете добавить свою логику по нажатию
       child: SizedBox(
         child: Column(
           children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: Image.asset(
-                _showFirstImage ? widget.imageUrl1 : widget.imageUrl2,
-                key: ValueKey(_showFirstImage), // Уникальный ключ для анимации
-                width: 120,
-              ),
-            ),
+            _imageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: _imageUrl!,
+                    width: 120,
+                    placeholder: (context, url) =>
+                        const CircularProgressIndicator(),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
+                  )
+                : const SizedBox(
+                    height: 120,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
             SizedBox(
               width: 110,
               child: Text(

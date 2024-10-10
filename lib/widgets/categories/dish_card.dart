@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class DishCard extends StatefulWidget {
   final String name;
@@ -8,13 +9,14 @@ class DishCard extends StatefulWidget {
   final int review_count;
   final String imageUrl;
 
-  const DishCard(
-      {super.key,
-      required this.name,
-      required this.rating,
-      required this.review_count,
-      required this.imageUrl,
-      required this.restaraunt});
+  const DishCard({
+    super.key,
+    required this.name,
+    required this.rating,
+    required this.review_count,
+    required this.imageUrl,
+    required this.restaraunt,
+  });
 
   @override
   State<DishCard> createState() => _DishCardState();
@@ -34,12 +36,21 @@ class _DishCardState extends State<DishCard> {
           ClipRRect(
             borderRadius:
                 const BorderRadius.all(Radius.circular(10)), // Добавьте радиус
-            child: Image.network(
-              widget.imageUrl,
+            child: CachedNetworkImage(
+              imageUrl: widget.imageUrl,
               fit: BoxFit.cover,
               height: 300,
               width: 140,
               alignment: Alignment.topCenter,
+              placeholder: (context, url) => Center(
+                child: CircularProgressIndicator(
+                  color: const Color.fromARGB(255, 243, 175, 79),
+                ),
+              ),
+              errorWidget: (context, url, error) => const Icon(
+                Icons.error,
+                color: Colors.red,
+              ),
             ),
           ),
           Positioned(

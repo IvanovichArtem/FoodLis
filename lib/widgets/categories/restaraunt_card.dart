@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:food_lis/widgets/kitchen_modal/restaraunt_modal.dart';
 
 class RestarauntCard extends StatefulWidget {
@@ -41,25 +42,18 @@ class _RestarauntCardState extends State<RestarauntCard> {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(10)),
-              child: Image.network(
-                widget.imageUrl,
+              child: CachedNetworkImage(
+                imageUrl: widget.imageUrl,
                 width: 140,
                 fit: BoxFit.fill,
                 height: 300,
                 alignment: Alignment.topCenter,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: Color.fromARGB(255, 243, 175, 79),
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              (loadingProgress.expectedTotalBytes ?? 1)
-                          : null,
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) => const Icon(
+                placeholder: (context, url) => Center(
+                  child: CircularProgressIndicator(
+                    color: const Color.fromARGB(255, 243, 175, 79),
+                  ),
+                ),
+                errorWidget: (context, url, error) => const Icon(
                   Icons.error,
                   color: Colors.red,
                 ),

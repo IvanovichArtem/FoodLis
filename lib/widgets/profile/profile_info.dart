@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'medals.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileInfo extends StatefulWidget {
   final String profileImageUrl;
-  final String name;
-  final String surname;
-  final String phone;
   final int scores;
   final List<String> categories;
   final String level;
@@ -14,9 +13,6 @@ class ProfileInfo extends StatefulWidget {
   const ProfileInfo({
     super.key,
     required this.profileImageUrl,
-    required this.name,
-    required this.surname,
-    required this.phone,
     required this.scores,
     required this.categories,
     required this.level,
@@ -27,6 +23,37 @@ class ProfileInfo extends StatefulWidget {
 }
 
 class _ProfileInfoState extends State<ProfileInfo> {
+  String name = '';
+  String surname = '';
+  String phone = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+  // Метод для получения данных пользователя из Firestore
+  Future<void> fetchUserData() async {
+    // Получаем текущего пользователя
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      String uid = currentUser.uid; // Получаем UID пользователя
+
+      // Обращаемся к коллекции "users" для получения данных
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      // Извлекаем необходимые поля
+      setState(() {
+        name = userDoc['name'];
+        surname = userDoc['surname'];
+        phone = userDoc['phoneNumber'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 // Получаем ширину экрана
@@ -52,7 +79,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                   width: 15,
                 ),
                 Text(
-                  "${widget.name} ${widget.surname}",
+                  "$name $surname",
                   style: GoogleFonts.montserrat(
                       color: const Color.fromARGB(255, 138, 138, 142),
                       fontSize: 17,
@@ -77,7 +104,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                     width: 15,
                   ),
                   Text(
-                    widget.phone,
+                    phone,
                     style: GoogleFonts.montserrat(
                         color: const Color.fromARGB(255, 191, 191, 191),
                         fontSize: 12),

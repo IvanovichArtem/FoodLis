@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Импорт Firestore
 
 class AuthPage extends StatefulWidget {
   const AuthPage({Key? key}) : super(key: key);
@@ -11,6 +12,13 @@ class AuthPage extends StatefulWidget {
 class _AuthPageState extends State<AuthPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController nameController =
+      TextEditingController(); // Контроллер для имени
+  final TextEditingController surnameController =
+      TextEditingController(); // Контроллер для фамилии
+  final TextEditingController phoneController =
+      TextEditingController(); // Контроллер для номера телефона
+
   bool isLogin = true;
 
   Future<void> _authenticate() async {
@@ -23,10 +31,23 @@ class _AuthPageState extends State<AuthPage> {
         );
       } else {
         // Регистрация
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
+
+        // Получаем UID пользователя
+        String uid = userCredential.user!.uid;
+
+        // Сохраняем дополнительные данные в Firestore
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'name': nameController.text.trim(),
+          'surname': surnameController.text.trim(),
+          'email': emailController.text.trim(),
+          'phoneNumber': phoneController.text.trim(),
+          'created': DateTime.now(), // Дата создания
+        });
       }
     } on FirebaseAuthException catch (e) {
       // Обработка ошибок
@@ -53,6 +74,20 @@ class _AuthPageState extends State<AuthPage> {
               decoration: InputDecoration(labelText: 'Пароль'),
               obscureText: true,
             ),
+            if (!isLogin) ...[
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Имя'),
+              ),
+              TextField(
+                controller: surnameController,
+                decoration: InputDecoration(labelText: 'Фамилия'),
+              ),
+              TextField(
+                controller: phoneController,
+                decoration: InputDecoration(labelText: 'Телефон'),
+              ),
+            ],
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _authenticate,
