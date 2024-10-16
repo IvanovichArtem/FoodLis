@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_lis/pages/app.dart'; // Файл, где описана логика главного приложения
 import 'package:food_lis/pages/auth.dart'; // Страница авторизации и регистрации
 import 'package:yandex_mapkit/yandex_mapkit.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart' show Firebase;
 import 'package:firebase_auth/firebase_auth.dart'; // Для работы с аутентификацией
 
 void main() async {
@@ -13,7 +13,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
   final Color scaffoldBackgroundColor =
       const Color.fromARGB(255, 247, 247, 247);
   final Color bottomNavBarBackgroundColor =
@@ -39,6 +39,8 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(

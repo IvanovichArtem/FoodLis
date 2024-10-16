@@ -6,7 +6,7 @@ import 'profile.dart';
 import 'package:food_lis/widgets/bottom_navbar.dart';
 
 class MyAppPage extends StatefulWidget {
-  const MyAppPage({Key? key}) : super(key: key);
+  const MyAppPage({super.key});
 
   @override
   State<MyAppPage> createState() => _MyAppPageState();
