@@ -13,10 +13,11 @@ class _ChelState extends State<Chel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const ChelAppBar(),
-      body: Center(
+      body: SizedBox(
+        height: double.infinity,
         // Изменено выравнивание, чтобы картинка была по центру
         child: SvgPicture.asset(
-          'assets/images/error_page.svg',
+          alignment: Alignment.center, 'assets/images/error_page.svg',
           height:
               300, // Задал размеры, чтобы изображение не выходило за границы
           semanticsLabel: 'Ошибка', // Альтернативный текст для доступности

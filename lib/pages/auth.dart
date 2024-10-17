@@ -161,13 +161,18 @@ class _LoginPageState extends State<LoginPage> {
                       backgroundColor:
                           const MaterialStatePropertyAll(mainOrange),
                     ),
-                    child: Text(
-                      'Войти',
-                      style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Войти',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

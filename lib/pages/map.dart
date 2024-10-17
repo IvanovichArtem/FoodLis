@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:food_lis/widgets/map/map_container.dart';
 import 'package:food_lis/widgets/modal_bottom_sheet.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class MapScreen extends StatefulWidget {
   final int initialIndex;
@@ -22,7 +24,48 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    restaurantData = widget.data;
+    _fetchRestaurantData();
+    // restaurantData = widget.data;
+  }
+
+  Future<void> _fetchRestaurantData() async {
+    try {
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('restaraunts').get();
+
+      final List<Map<String, dynamic>> data = await Future.wait(
+        querySnapshot.docs.map((doc) async {
+          final imageUrl = await _getImageUrl(doc['imageUrl']);
+          return {
+            'avgPrice': doc['avgPrice'],
+            'avgReview': doc['avgReview'],
+            'cntReviews': doc['cntReviews'],
+            'imageUrl': imageUrl,
+            'location': doc['location'],
+            'name': doc['name'],
+            'restarauntType': doc['restarauntType'],
+            'timeByCar': doc['timeByCar'],
+            'timeByWalk': doc['timeByWalk'],
+            'isToogle': false,
+          };
+        }).toList(),
+      );
+
+      setState(() {
+        restaurantData = data;
+      });
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  Future<String> _getImageUrl(String path) async {
+    try {
+      return await FirebaseStorage.instance.ref(path).getDownloadURL();
+    } catch (e) {
+      print('Error fetching image URL: $e');
+      return '';
+    }
   }
 
   void _onButtonPressed(int index) {
@@ -47,7 +90,7 @@ class _MapScreenState extends State<MapScreen> {
             children: <Widget>[
               // YandexMap должен находиться под всеми элементами
               const Positioned.fill(
-                child: MapContainer(), // YandexMap внутри MapContainer
+                child: MapContainer(),
               ),
               Positioned(
                 bottom: 0,
@@ -304,11 +347,11 @@ class ListScreen extends StatelessWidget {
       items.add(SearchItem(
         imageUrl: item['imageUrl'],
         name: item['name'],
-        restType: item['restType'],
-        meanScore: item['meanScore'],
-        reviewsCount: item['reviewsCount'],
-        minutesToRest: item['minutesToRest'],
-        meanCost: item['meanCost'],
+        restarauntType: item['restarauntType'],
+        avgReview: item['avgReview'].toDouble(),
+        cntReviews: item['cntReviews'],
+        timeByWalk: item['timeByWalk'],
+        avgPrice: item['avgPrice'],
         isToogle: item['isToogle'],
       ));
       items.add(const Padding(
@@ -336,21 +379,21 @@ class SearchItem extends StatelessWidget {
 
   final String imageUrl;
   final String name;
-  final String restType;
-  final double meanScore;
-  final int reviewsCount;
-  final int minutesToRest;
-  final int meanCost;
+  final String restarauntType;
+  final double avgReview;
+  final int cntReviews;
+  final int timeByWalk;
+  final int avgPrice;
   final bool isToogle;
   const SearchItem(
       {super.key,
       required this.imageUrl,
       required this.name,
-      required this.restType,
-      required this.meanScore,
-      required this.reviewsCount,
-      required this.minutesToRest,
-      required this.meanCost,
+      required this.restarauntType,
+      required this.avgReview,
+      required this.cntReviews,
+      required this.timeByWalk,
+      required this.avgPrice,
       required this.isToogle});
 
   @override
@@ -373,7 +416,7 @@ class SearchItem extends StatelessWidget {
               child: ClipRRect(
                 borderRadius:
                     BorderRadius.all(Radius.circular(10)), // Задайте радиус
-                child: Image.asset(
+                child: Image.network(
                   imageUrl, // Ваш путь к изображению
                   fit: BoxFit.cover,
                   height: 140,
@@ -405,7 +448,7 @@ class SearchItem extends StatelessWidget {
                   SizedBox(
                     height: 45,
                     width: 190,
-                    child: Text(restType,
+                    child: Text(restarauntType,
                         style: GoogleFonts.montserrat(
                             color: const Color.fromARGB(255, 114, 114, 114),
                             fontSize: 14,
@@ -425,7 +468,7 @@ class SearchItem extends StatelessWidget {
                         width: 2,
                       ),
                       Text(
-                        meanScore.toString().replaceAll('.', ','),
+                        avgReview.toString().replaceAll('.', ','),
                         style: GoogleFonts.montserrat(
                             color: const Color.fromARGB(255, 114, 114, 114),
                             fontSize: 12,
@@ -445,7 +488,7 @@ class SearchItem extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 0),
                         child: Text(
-                          getReviewWord(reviewsCount),
+                          getReviewWord(cntReviews),
                           style: GoogleFonts.montserrat(
                               color: const Color.fromARGB(255, 114, 114, 114),
                               fontSize: 12,
@@ -478,11 +521,11 @@ class SearchItem extends StatelessWidget {
                                 width: 3,
                               ),
                               Text(
-                                "$minutesToRest мин",
+                                "$timeByWalk мин",
                                 style: GoogleFonts.montserrat(
                                     color: const Color.fromARGB(
                                         255, 175, 175, 175),
-                                    fontSize: 12),
+                                    fontSize: 10),
                               )
                             ],
                           ),
@@ -502,7 +545,7 @@ class SearchItem extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "$meanCost Br",
+                                "$avgPrice Br",
                                 style: GoogleFonts.montserrat(
                                     color: const Color.fromARGB(
                                         255, 175, 175, 175),

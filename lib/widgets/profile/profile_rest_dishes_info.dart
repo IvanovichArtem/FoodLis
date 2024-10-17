@@ -18,19 +18,19 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
       'name': 'Мамомимо',
       'rating': 5.0,
       'top': 1,
-      'imageUrl': 'assets/images/restaraunts/мамомимо.jpg',
+      'imageUrl': 'images/restaraunts/мамомимо.jpg',
     },
     {
       'name': 'Престиж',
       'rating': 5.0,
       'top': 2,
-      'imageUrl': 'assets/images/restaraunts/престиж.jpg',
+      'imageUrl': 'images/restaraunts/престиж.jpg',
     },
     {
       'name': 'Проспект',
       'rating': 5.0,
       'top': 3,
-      'imageUrl': 'assets/images/restaraunts/Проспект.jpg',
+      'imageUrl': 'images/restaraunts/Проспект.jpg',
     },
   ];
 
@@ -40,21 +40,21 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
       'restaraunt': 'Мамомимо',
       'rating': 5.0,
       'top': 1,
-      'imageUrl': 'assets/images/dishes/греческий салат.jpg',
+      'imageUrl': 'images/dishes/греческий салат.jpg',
     },
     {
       'name': 'Тигровые креветки',
       'restaraunt': 'Prime',
       'rating': 5.0,
       'top': 2,
-      'imageUrl': 'assets/images/dishes/тигровые креветки.jpg',
+      'imageUrl': 'images/dishes/тигровые креветки.jpg',
     },
     {
       'name': 'Лосось',
       'restaraunt': 'Мимино',
       'rating': 5.0,
       'top': 3,
-      'imageUrl': 'assets/images/dishes/лосось.jpg',
+      'imageUrl': 'images/dishes/лосось.jpg',
     },
   ];
 
