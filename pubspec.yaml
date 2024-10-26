@@ -22,6 +22,7 @@ dependencies:
   cloud_firestore: ^5.4.4
   firebase_storage: ^12.3.3
   cached_network_image: ^3.4.1
+  widgets_to_image: ^1.0.0
 
 dev_dependencies:
   flutter_test:
@@ -36,3 +37,4 @@ flutter:
     - assets/svg/
     - assets/images/fox.jpg
     - assets/images/error_page.svg
+    - assets/icons/

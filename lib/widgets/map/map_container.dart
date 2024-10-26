@@ -1,7 +1,14 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
-import 'package:location/location.dart'; // Для получения текущего местоположения
+import 'package:location/location.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:widgets_to_image/widgets_to_image.dart';
+import 'package:food_lis/widgets/map/restaraunt_map_widget.dart';
 
 class MapContainer extends StatefulWidget {
   const MapContainer({super.key});
@@ -13,37 +20,228 @@ class MapContainer extends StatefulWidget {
 class _MapContainerState extends State<MapContainer> {
   late YandexMapController _controller;
   LocationData? _currentLocation;
-  final List<MapObject> _mapObjects = []; // Список маркеров на карте
+  final List<MapObject> _mapObjects = [];
+  final double _zoomLevel = 15.0;
+
+  final GlobalKey _widgetKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation(); // Получаем текущее местоположение при инициализации
+    _getCurrentLocation();
   }
 
   Future<void> _getCurrentLocation() async {
     Location location = Location();
     await location.requestPermission();
     _currentLocation = await location.getLocation();
-    // Добавляем маркер на текущее местоположение
     _addCurrentLocationMarker();
+    await _fetchRestaurants();
   }
 
   void _addCurrentLocationMarker() {
     if (_currentLocation != null) {
       final mapObject = PlacemarkMapObject(
-        // Создаем маркер
-        mapId: MapObjectId('current_location'), // Уникальный ID для маркера
-        point: Point(
-          latitude: _currentLocation!.latitude!,
-          longitude: _currentLocation!.longitude!,
-        ),
-      );
+          mapId: MapObjectId('current_location'),
+          opacity: 1,
+          point: Point(
+            latitude: _currentLocation!.latitude!,
+            longitude: _currentLocation!.longitude!,
+          ),
+          icon: PlacemarkIcon.composite([
+            PlacemarkCompositeIconItem(
+                name: '',
+                style: PlacemarkIconStyle(
+                    scale: 0.5,
+                    image: BitmapDescriptor.fromAssetImage(
+                        'assets/icons/current_location.png')))
+          ]));
 
-      // setState(() {
-      //   _mapObjects.add(mapObject); // Добавляем маркер в список
-      // });
+      setState(() {
+        _mapObjects.add(mapObject);
+      });
     }
+  }
+
+  Future<void> _fetchRestaurants() async {
+    final QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('restaraunts').get();
+
+    for (var doc in snapshot.docs) {
+      try {
+        final data = doc.data() as Map<String, dynamic>;
+
+        double latitude = data['location'].latitude;
+        double longitude = data['location'].longitude;
+        String name = data['name'];
+        String rating = data['avgReview'].toString();
+        String price = data['avgPrice'].toString();
+
+        await _addRestaurantMarker(latitude, longitude, name, rating, price);
+      } catch (e) {
+        print('Ошибка при обработке документа: $e');
+        continue;
+      }
+    }
+  }
+
+  Future<Uint8List> createCustomMarker(
+      String name, String rating, String price) async {
+    // Увеличиваем размеры холста для иконки location_dot
+    final double width = 300;
+    final double height = 230; // Увеличенная высота
+
+    // Создаем PictureRecorder для записи рисования на холсте
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas =
+        Canvas(recorder, Rect.fromPoints(Offset(0, 0), Offset(width, height)));
+
+    // Задаем фон маркера
+    final Paint paint = Paint()
+      ..color = Colors.white
+      ..isAntiAlias = true;
+    final RRect rrect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 40, width, height - 50),
+        Radius.circular(34)); // Сдвигаем фон вниз
+    canvas.drawRRect(rrect, paint);
+
+    // Настройки текста для имени
+    final textPainterName = TextPainter(
+      text: TextSpan(
+        text: name,
+        style: TextStyle(
+          color: Color.fromARGB(255, 244, 175, 17),
+          fontWeight: FontWeight.bold,
+          fontSize: 48,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainterName.layout(maxWidth: width - 36);
+    textPainterName.paint(canvas, Offset(18, 61)); // Сдвигаем текст вниз
+
+    // Рисуем иконку location_dot поверх всего
+    final locationIcon = Icons.location_on;
+    final locationIconPainter = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(locationIcon.codePoint),
+        style: TextStyle(
+          fontSize: 80, // Размер иконки location_dot
+          fontFamily: locationIcon.fontFamily,
+          color: Color.fromARGB(255, 244, 175, 17),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    locationIconPainter.layout();
+    locationIconPainter.paint(
+        canvas, Offset(width / 2.75, -10)); // Сдвигаем иконку выше
+
+    // Рисуем иконку звезды
+    final starIcon = Icons.star_rounded;
+    final starIconPainter = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(starIcon.codePoint),
+        style: TextStyle(
+          fontSize: 54, // Размер иконки звезды
+          fontFamily: starIcon.fontFamily,
+          color: Color.fromARGB(255, 244, 175, 17),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    starIconPainter.layout();
+    starIconPainter.paint(canvas, Offset(27, 116)); // Сдвигаем иконку ниже
+
+    // Рисуем текст с рейтингом и ценой
+    final textPainterRating = TextPainter(
+      text: TextSpan(
+        text: "$rating ~ $price Br",
+        style: TextStyle(
+          fontSize: 36, // Размер текста
+          color: Color.fromARGB(255, 244, 175, 17),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainterRating.layout();
+    textPainterRating.paint(canvas, Offset(90, 122)); // Сдвигаем текст ниже
+
+    // Завершаем запись рисования и создаем изображение
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(width.toInt(), height.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    return byteData!.buffer.asUint8List();
+  }
+
+  Future<void> _addRestaurantMarker(double latitude, double longitude,
+      String name, String rating, String price) async {
+    // Создаем высококачественный маркер
+    Uint8List markerBytes = await createCustomMarker(name, rating, price);
+
+    // Добавляем маркер с масштабированием
+    final mapObject = PlacemarkMapObject(
+      mapId: MapObjectId('restaurant_${latitude}_$longitude'),
+      point: Point(latitude: latitude, longitude: longitude),
+      opacity: 1,
+      icon: PlacemarkIcon.single(
+        PlacemarkIconStyle(
+          image: BitmapDescriptor.fromBytes(markerBytes),
+          scale:
+              1, // Уменьшите масштаб, чтобы маркер выглядел адекватного размера на карте
+          zIndex: 1,
+        ),
+      ),
+    );
+
+    setState(() {
+      _mapObjects.add(mapObject);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      key: _widgetKey,
+      child: Scaffold(
+        body: Stack(
+          children: [
+            YandexMap(
+              logoAlignment: MapAlignment(
+                horizontal: HorizontalAlignment.left,
+                vertical: VerticalAlignment.bottom,
+              ),
+              onMapCreated: (YandexMapController controller) {
+                _controller = controller;
+                _controller.moveCamera(
+                  CameraUpdate.newCameraPosition(
+                    const CameraPosition(
+                      target: Point(latitude: 53.9, longitude: 27.5667),
+                      zoom: 13,
+                    ),
+                  ),
+                );
+              },
+              onMapTap: _onMapTap,
+              mapObjects: _mapObjects,
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 16, 113),
+                child: FloatingActionButton(
+                  backgroundColor: Colors.white,
+                  onPressed: _moveToCurrentLocation,
+                  child: const FaIcon(FontAwesomeIcons.locationArrow,
+                      color: Color.fromARGB(255, 243, 175, 78)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _moveToCurrentLocation() {
@@ -55,64 +253,16 @@ class _MapContainerState extends State<MapContainer> {
               latitude: _currentLocation!.latitude!,
               longitude: _currentLocation!.longitude!,
             ),
-            zoom: 15, // Установите желаемый уровень зума
+            zoom: 70,
           ),
         ),
       );
     } else {
-      // Обработка случая, если местоположение не было получено
       print('Не удалось получить текущее местоположение');
     }
   }
 
   void _onMapTap(Point point) {
-    // Обработка нажатия на карту
     print('Координаты нажатия: ${point.latitude}, ${point.longitude}');
-    // Здесь вы можете добавить логику для получения информации о месте
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          YandexMap(
-            logoAlignment: MapAlignment(
-              horizontal: HorizontalAlignment.left,
-              vertical: VerticalAlignment.bottom,
-            ),
-            onMapCreated: (YandexMapController controller) {
-              _controller = controller;
-              // Переместите камеру на начальную позицию (например, Минск)
-              _controller.moveCamera(
-                CameraUpdate.newCameraPosition(
-                  const CameraPosition(
-                    target: Point(latitude: 53.9, longitude: 27.5667), // Минск
-                    zoom: 13,
-                  ),
-                ),
-              );
-            },
-            onMapTap: _onMapTap, // Устанавливаем обработчик нажатий на карту
-            mapObjects: _mapObjects, // Передаем список маркеров на карту
-          ),
-          Align(
-            alignment: Alignment
-                .bottomRight, // Здесь настраиваем позицию FloatingActionButton
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  0, 0, 16, 113), // Отступ от края экрана
-              child: FloatingActionButton(
-                backgroundColor: Colors.white,
-                onPressed: _moveToCurrentLocation,
-                child: const FaIcon(FontAwesomeIcons.locationArrow,
-                    color:
-                        Color.fromARGB(255, 243, 175, 78)), // Иконка для кнопки
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

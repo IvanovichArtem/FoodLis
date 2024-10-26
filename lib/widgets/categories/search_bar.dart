@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:food_lis/pages/map.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class SearchInput extends StatefulWidget {
   const SearchInput({super.key});
@@ -11,68 +13,53 @@ class SearchInput extends StatefulWidget {
 
 class _SearchInputState extends State<SearchInput> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> restaurantData = [
-    {
-      'imageUrl': 'assets/images/restaraunts/мамомимо.jpg',
-      'name': 'Мамомимо',
-      'restType': 'Ресторан итальянской кухни',
-      'meanScore': 4.7,
-      'reviewsCount': 19,
-      'minutesToRest': 5,
-      'meanCost': 25,
-      'isToogle': true,
-    },
-    {
-      'imageUrl': 'assets/images/restaraunts/престиж.jpg',
-      'name': 'Престиж',
-      'restType': 'Ресторан французской кухни',
-      'meanScore': 4.5,
-      'reviewsCount': 21,
-      'minutesToRest': 5,
-      'meanCost': 30,
-      'isToogle': false,
-    },
-    {
-      'imageUrl': 'assets/images/restaraunts/у веры.jpg',
-      'name': 'У Веры',
-      'restType': 'Ресторан белорусской кухни',
-      'meanScore': 5.0,
-      'reviewsCount': 99,
-      'minutesToRest': 3,
-      'meanCost': 25,
-      'isToogle': true,
-    },
-    {
-      'imageUrl': 'assets/images/restaraunts/greeny.jpg',
-      'name': 'Greeny',
-      'restType': 'Ресторан',
-      'meanScore': 4.9,
-      'reviewsCount': 43,
-      'minutesToRest': 5,
-      'meanCost': 30,
-      'isToogle': false,
-    },
-  ];
-
   List<Map<String, dynamic>> _searchResults = [];
 
-  void _searchDatabase(String text) {
+  Future<void> _searchDatabase(String text) async {
+    // Получаем все данные из коллекции 'restaraunts'
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('restaraunts').get();
+
+    // Приводим введённый текст к нижнему регистру и убираем лишние пробелы
+    final trimmedLowerText = text.trim().toLowerCase();
+
+    // Фильтруем данные на стороне клиента, приводя 'name' к нижнему регистру
+    final filteredDocs = querySnapshot.docs.where((doc) {
+      final nameLower = doc['name'].toString().toLowerCase();
+      return nameLower.contains(trimmedLowerText);
+    }).toList();
+
+    // Перебираем отфильтрованные документы и получаем URL изображений
+    final List<Map<String, dynamic>> searchResults = [];
+    for (var doc in filteredDocs) {
+      final data = doc.data();
+      final imagePath = data['imageUrl']; // Извлекаем путь к изображению
+
+      // Получаем полный URL изображения из Firebase Storage
+      final imageUrl =
+          await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
+
+      // Обновляем данные с правильной ссылкой на изображение и добавляем id документа
+      searchResults.add({
+        'documentId': doc.id, // Сохраняем id документа
+        ...data,
+        'imageUrl': imageUrl, // Заменяем путь на полный URL
+      });
+    }
+
+    // Обновляем состояние с результатами поиска
     setState(() {
-      _searchResults = restaurantData.where((restaurant) {
-        final name = restaurant['name'] as String;
-        return name.toLowerCase().contains(text.toLowerCase());
-      }).toList();
+      _searchResults = searchResults;
     });
   }
 
   void _onSearchResultTap(Map<String, dynamic> restaurant) {
-    // Открытие MapScreen с результатами поиска
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => MapScreen(
-          initialIndex: 0, // Здесь можете установить нужный индекс
-          data: _searchResults, // Передаём найденные данные
+          initialIndex: 0,
+          data: _searchResults,
         ),
       ),
     );
@@ -81,12 +68,15 @@ class _SearchInputState extends State<SearchInput> {
   void _handleSubmit() {
     final searchText = _searchController.text;
     if (searchText.isNotEmpty) {
-      // Ищем результаты и затем вызываем _onSearchResultTap
-      _searchDatabase(searchText);
-      // Вызываем метод на первом найденном элементе
-      if (_searchResults.isNotEmpty) {
-        _onSearchResultTap(_searchResults.first);
-      }
+      _searchDatabase(searchText).then((_) {
+        if (_searchResults.isNotEmpty) {
+          _onSearchResultTap(_searchResults.first);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('По вашему запросу нет данных')),
+          );
+        }
+      });
     }
   }
 
@@ -114,16 +104,14 @@ class _SearchInputState extends State<SearchInput> {
               borderRadius: BorderRadius.circular(10.0),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(
-                vertical: 8.0,
-                horizontal: 10.0), // Уменьшаем вертикальное значение
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
           ),
-          style:
-              GoogleFonts.montserrat(fontSize: 14), // Установите размер текста
+          style: GoogleFonts.montserrat(fontSize: 14),
           onChanged: (String value) {
             _searchDatabase(value);
           },
-          onSubmitted: (value) => _handleSubmit(), // Вызываем _handleSubmit
+          onSubmitted: (value) => _handleSubmit(),
         ),
       ],
     );

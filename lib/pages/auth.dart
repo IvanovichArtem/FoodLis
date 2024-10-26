@@ -158,8 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                   ElevatedButton(
                     onPressed: _login,
                     style: ButtonStyle(
-                      backgroundColor:
-                          const MaterialStatePropertyAll(mainOrange),
+                      backgroundColor: const WidgetStatePropertyAll(mainOrange),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -402,7 +401,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ElevatedButton(
               onPressed: _register,
               style: ButtonStyle(
-                backgroundColor: const MaterialStatePropertyAll(mainOrange),
+                backgroundColor: const WidgetStatePropertyAll(mainOrange),
               ),
               child: Text(
                 'Зарегестрироваться',
@@ -533,8 +532,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   ElevatedButton(
                     onPressed: _resetPassword,
                     style: ButtonStyle(
-                      backgroundColor:
-                          const MaterialStatePropertyAll(mainOrange),
+                      backgroundColor: const WidgetStatePropertyAll(mainOrange),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

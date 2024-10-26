@@ -25,7 +25,7 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _fetchRestaurantData();
-    // restaurantData = widget.data;
+    restaurantData = widget.data;
   }
 
   Future<void> _fetchRestaurantData() async {
@@ -47,6 +47,7 @@ class _MapScreenState extends State<MapScreen> {
             'timeByCar': doc['timeByCar'],
             'timeByWalk': doc['timeByWalk'],
             'isToogle': false,
+            'documentId': doc.id
           };
         }).toList(),
       );
@@ -316,34 +317,103 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-class ListScreen extends StatelessWidget {
+class ListScreen extends StatefulWidget {
   final List<Map<String, dynamic>> data;
 
   const ListScreen({super.key, required this.data});
 
   @override
+  _ListScreenState createState() => _ListScreenState();
+}
+
+class _ListScreenState extends State<ListScreen> {
+  late List<Map<String, dynamic>> currentData;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.data.isEmpty) {
+      // Если данные пусты, запускаем загрузку
+      _fetchRestaurantData();
+    } else {
+      currentData = widget.data;
+    }
+  }
+
+  Future<void> _fetchRestaurantData() async {
+    setState(() {
+      isLoading = true; // Показываем индикатор загрузки
+    });
+
+    try {
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('restaraunts').get();
+
+      final List<Map<String, dynamic>> data = await Future.wait(
+        querySnapshot.docs.map((doc) async {
+          final imageUrl = await _getImageUrl(doc['imageUrl']);
+          return {
+            'avgPrice': doc['avgPrice'],
+            'avgReview': doc['avgReview'],
+            'cntReviews': doc['cntReviews'],
+            'imageUrl': imageUrl,
+            'location': doc['location'],
+            'name': doc['name'],
+            'restarauntType': doc['restarauntType'],
+            'timeByCar': doc['timeByCar'],
+            'timeByWalk': doc['timeByWalk'],
+            'isToogle': doc['isToogle'],
+            'documentId': doc.id
+          };
+        }).toList(),
+      );
+
+      setState(() {
+        currentData = data;
+        isLoading = false; // Скрываем индикатор загрузки
+      });
+    } catch (e) {
+      print('Ошибка при загрузке данных: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<String> _getImageUrl(String path) async {
+    try {
+      return await FirebaseStorage.instance.ref(path).getDownloadURL();
+    } catch (e) {
+      print('Ошибка при загрузке URL изображения: $e');
+      return '';
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 110, 10, 10),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.start, // Элементы будут выравниваться вверху
-            children: [
-              ..._buildItems(), // Генерируем виджеты на основе данных
-            ],
-          ),
-        ),
-      ),
+    return Scaffold(
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator()) // Показать индикатор загрузки
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(10, 110, 10, 10),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ..._buildItems(), // Генерация виджетов на основе текущих данных
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
-  // Метод для генерации списка виджетов
   List<Widget> _buildItems() {
     List<Widget> items = [];
 
-    for (var item in data) {
+    for (var item in currentData) {
       items.add(SearchItem(
         imageUrl: item['imageUrl'],
         name: item['name'],
@@ -353,6 +423,7 @@ class ListScreen extends StatelessWidget {
         timeByWalk: item['timeByWalk'],
         avgPrice: item['avgPrice'],
         isToogle: item['isToogle'],
+        documentId: item['documentId'],
       ));
       items.add(const Padding(
         padding: EdgeInsets.symmetric(horizontal: 15),
@@ -362,9 +433,68 @@ class ListScreen extends StatelessWidget {
 
     return items;
   }
+
+  void updateData(List<Map<String, dynamic>> newData) {
+    setState(() {
+      currentData = newData;
+    });
+  }
 }
 
-class SearchItem extends StatelessWidget {
+class SearchItem extends StatefulWidget {
+  final String imageUrl;
+  final String name;
+  final String restarauntType;
+  final double avgReview;
+  final int cntReviews;
+  final int timeByWalk;
+  final int avgPrice;
+  final bool isToogle;
+  final String
+      documentId; // Добавим идентификатор документа для обновления данных в Firebase
+
+  const SearchItem({
+    super.key,
+    required this.imageUrl,
+    required this.name,
+    required this.restarauntType,
+    required this.avgReview,
+    required this.cntReviews,
+    required this.timeByWalk,
+    required this.avgPrice,
+    required this.isToogle,
+    required this.documentId, // Добавляем новый параметр
+  });
+
+  @override
+  _SearchItemState createState() => _SearchItemState();
+}
+
+class _SearchItemState extends State<SearchItem> {
+  late bool isBookmarked;
+
+  @override
+  void initState() {
+    super.initState();
+    isBookmarked = widget.isToogle; // Инициализируем текущее состояние
+  }
+
+  // Метод для обновления состояния в Firestore и изменения иконки
+  Future<void> _toggleBookmark() async {
+    setState(() {
+      isBookmarked = !isBookmarked;
+    });
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('restaraunts')
+          .doc(widget.documentId) // Используем идентификатор документа
+          .update({'isToogle': isBookmarked}); // Обновляем значение в Firestore
+    } catch (e) {
+      print('Ошибка обновления закладки: $e');
+    }
+  }
+
   String getReviewWord(int count) {
     if (count % 10 == 1 && count % 100 != 11) {
       return "$count отзыв";
@@ -377,25 +507,6 @@ class SearchItem extends StatelessWidget {
     }
   }
 
-  final String imageUrl;
-  final String name;
-  final String restarauntType;
-  final double avgReview;
-  final int cntReviews;
-  final int timeByWalk;
-  final int avgPrice;
-  final bool isToogle;
-  const SearchItem(
-      {super.key,
-      required this.imageUrl,
-      required this.name,
-      required this.restarauntType,
-      required this.avgReview,
-      required this.cntReviews,
-      required this.timeByWalk,
-      required this.avgPrice,
-      required this.isToogle});
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -404,20 +515,17 @@ class SearchItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              height: 140, // Задайте высоту контейнера
-              width: 120, // Задайте ширину контейнера
+              height: 140,
+              width: 120,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(10)),
-                color: Colors
-                    .grey[200], // Цвет фона, если изображение не загрузилось
+                color: Colors.grey[200],
               ),
-              clipBehavior: Clip
-                  .hardEdge, // Убедитесь, что содержимое обрезается по радиусам
+              clipBehavior: Clip.hardEdge,
               child: ClipRRect(
-                borderRadius:
-                    BorderRadius.all(Radius.circular(10)), // Задайте радиус
+                borderRadius: BorderRadius.all(Radius.circular(10)),
                 child: Image.network(
-                  imageUrl, // Ваш путь к изображению
+                  widget.imageUrl,
                   fit: BoxFit.cover,
                   height: 140,
                   width: 120,
@@ -435,7 +543,7 @@ class SearchItem extends StatelessWidget {
                       width: 190,
                       height: 25,
                       child: Text(
-                        name,
+                        widget.name,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: GoogleFonts.montserrat(
@@ -448,7 +556,7 @@ class SearchItem extends StatelessWidget {
                   SizedBox(
                     height: 45,
                     width: 190,
-                    child: Text(restarauntType,
+                    child: Text(widget.restarauntType,
                         style: GoogleFonts.montserrat(
                             color: const Color.fromARGB(255, 114, 114, 114),
                             fontSize: 14,
@@ -468,7 +576,7 @@ class SearchItem extends StatelessWidget {
                         width: 2,
                       ),
                       Text(
-                        avgReview.toString().replaceAll('.', ','),
+                        widget.avgReview.toString().replaceAll('.', ','),
                         style: GoogleFonts.montserrat(
                             color: const Color.fromARGB(255, 114, 114, 114),
                             fontSize: 12,
@@ -488,7 +596,7 @@ class SearchItem extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 0),
                         child: Text(
-                          getReviewWord(cntReviews),
+                          getReviewWord(widget.cntReviews),
                           style: GoogleFonts.montserrat(
                               color: const Color.fromARGB(255, 114, 114, 114),
                               fontSize: 12,
@@ -521,7 +629,7 @@ class SearchItem extends StatelessWidget {
                                 width: 3,
                               ),
                               Text(
-                                "$timeByWalk мин",
+                                "${widget.timeByWalk} мин",
                                 style: GoogleFonts.montserrat(
                                     color: const Color.fromARGB(
                                         255, 175, 175, 175),
@@ -545,7 +653,7 @@ class SearchItem extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "$avgPrice Br",
+                                "${widget.avgPrice} Br",
                                 style: GoogleFonts.montserrat(
                                     color: const Color.fromARGB(
                                         255, 175, 175, 175),
@@ -557,19 +665,24 @@ class SearchItem extends StatelessWidget {
                         const SizedBox(
                           width: 38,
                         ),
-                        Icon(
-                            isToogle
+                        GestureDetector(
+                          onTap:
+                              _toggleBookmark, // Добавляем onTap для переключения
+                          child: Icon(
+                            isBookmarked
                                 ? Icons.bookmark
                                 : Icons.bookmark_border_outlined,
-                            color: isToogle
+                            color: isBookmarked
                                 ? const Color.fromARGB(255, 243, 145, 8)
-                                : const Color.fromARGB(255, 135, 135, 139))
+                                : const Color.fromARGB(255, 135, 135, 139),
+                          ),
+                        ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
