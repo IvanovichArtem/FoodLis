@@ -2,13 +2,10 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:location/location.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:widgets_to_image/widgets_to_image.dart';
-import 'package:food_lis/widgets/map/restaraunt_map_widget.dart';
 
 class MapContainer extends StatefulWidget {
   const MapContainer({super.key});

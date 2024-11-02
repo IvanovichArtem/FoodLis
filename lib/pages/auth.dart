@@ -347,6 +347,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ),
             const SizedBox(height: 10),
             TextField(
+              controller: passwordController,
               obscureText: passwordVisible,
               decoration: InputDecoration(
                 fillColor: const Color.fromARGB(255, 247, 247, 247),

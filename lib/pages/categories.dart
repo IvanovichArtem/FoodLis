@@ -189,12 +189,12 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize =>
-      const Size.fromHeight(120); // Увеличиваем высоту AppBar
+      const Size.fromHeight(150); // Увеличиваем высоту AppBar
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      toolbarHeight: 180,
+      toolbarHeight: 200,
       elevation: 0,
       // цвет прозранчый
       backgroundColor: Colors.transparent,
@@ -206,40 +206,46 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Категории',
-                style: GoogleFonts.montserrat(
-                  fontWeight: FontWeight.w800,
-                  color: const Color.fromARGB(255, 92, 92, 92),
-                  fontSize: 28,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 25, 0, 15),
+                child: Text(
+                  'Категории',
+                  style: GoogleFonts.montserrat(
+                    fontWeight: FontWeight.w800,
+                    color: const Color.fromARGB(255, 92, 92, 92),
+                    fontSize: 28,
+                  ),
                 ),
               ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const FaIcon(
-                      FontAwesomeIcons.heart,
-                      color: Color.fromARGB(255, 138, 138, 142),
-                    ),
-                    splashColor: const Color.fromARGB(
-                        255, 132, 132, 132), // Цвет при нажатии
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 30, 0, 15),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const FaIcon(
+                        FontAwesomeIcons.heart,
+                        color: Color.fromARGB(255, 138, 138, 142),
+                      ),
+                      splashColor: const Color.fromARGB(
+                          255, 132, 132, 132), // Цвет при нажатии
 
-                    highlightColor: const Color.fromARGB(
-                        255, 136, 136, 136), // Цвет при нажатии
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const FaIcon(
-                      FontAwesomeIcons.bell,
-                      color: Color.fromARGB(255, 138, 138, 142),
+                      highlightColor: const Color.fromARGB(
+                          255, 136, 136, 136), // Цвет при нажатии
+                      onPressed: () {},
                     ),
-                    splashColor: const Color.fromARGB(
-                        255, 132, 132, 132), // Цвет при нажатии
+                    IconButton(
+                      icon: const FaIcon(
+                        FontAwesomeIcons.bell,
+                        color: Color.fromARGB(255, 138, 138, 142),
+                      ),
+                      splashColor: const Color.fromARGB(
+                          255, 132, 132, 132), // Цвет при нажатии
 
-                    highlightColor: const Color.fromARGB(255, 136, 136, 136),
-                    onPressed: () {},
-                  ),
-                ],
+                      highlightColor: const Color.fromARGB(255, 136, 136, 136),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -276,6 +282,9 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ],
           ),
+          SizedBox(
+            height: 22,
+          )
         ],
       ),
     );

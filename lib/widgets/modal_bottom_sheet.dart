@@ -25,7 +25,6 @@ class _BottomSheetContent extends StatefulWidget {
 }
 
 class __BottomSheetContentState extends State<_BottomSheetContent> {
-  // Начальные состояния виджетов
   double receiptStartValue = 10.0;
   double receiptEndValue = 20.0;
   bool isYandexSelected = false;
@@ -34,18 +33,22 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
   bool isTodaySelected = false;
   bool isTomorrowSelected = false;
 
-  // Метод для сброса состояний
   void resetStates() {
     setState(() {
-      // Сброс всех состояний к начальным значениям
+      receiptStartValue = 10.0;
+      receiptEndValue = 20.0;
       isYandexSelected = false;
       isDeliverySelected = false;
       isRestaurantSelected = false;
       isTodaySelected = false;
       isTomorrowSelected = false;
-      receiptStartValue = 10.0; // Начальное значение
-      receiptEndValue = 20.0; // Начальное значение
     });
+  }
+
+  void applyChanges() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Изменения применены!")),
+    );
   }
 
   @override
@@ -62,7 +65,6 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          // Черная фигнюшка
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: Container(
@@ -74,20 +76,19 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
               ),
             ),
           ),
-          // Контент внутри модального окна
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Передаем состояния в ReceiptWidget
                   ReceiptWidget(
                     startValue: receiptStartValue,
                     endValue: receiptEndValue,
                   ),
-                  const KitchensFilterWidget(),
+                  KitchensFilterWidget(
+                      // Provide necessary state or callbacks
+                      ),
                   RestarauntTypeWidget(
-                    // Обновите этот виджет для использования передачи состояния
                     buttonsData: [
                       {'name': 'Ресторан', 'isSelected': isRestaurantSelected},
                       {'name': 'Кафе', 'isSelected': false},
@@ -99,7 +100,9 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                       {'name': 'Бабл ти', 'isSelected': false},
                     ],
                   ),
-                  const DistanceWidget(),
+                  DistanceWidget(
+                      // Provide necessary state or callbacks
+                      ),
                   DeliveryInfo(
                     isYandexSelected: isYandexSelected,
                     isDeliverySelected: isDeliverySelected,
@@ -109,25 +112,27 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                     isTodaySelected: isTodaySelected,
                     isTomorrowSelected: isTomorrowSelected,
                   ),
-                  const DinnerInfo(),
+                  DinnerInfo(
+                      // Provide necessary state or callbacks
+                      ),
                   const SizedBox(height: 5),
                 ],
               ),
             ),
           ),
-          // Кнопки внизу
           Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10), // Отступы снизу
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
             child: Container(
               decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(10))),
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   const SizedBox(height: 5),
                   OutlinedButton(
-                    onPressed: resetStates, // Сброс состояний при нажатии
+                    onPressed: resetStates,
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Colors.white,
                       side: const BorderSide(
@@ -153,13 +158,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () => {
-                      // Логика для кнопки "Применить"
-                      // Добавьте здесь логику применения изменений
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Изменения применены!")),
-                      ),
-                    },
+                    onPressed: applyChanges,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 243, 175, 79),
                     ),

@@ -38,3 +38,7 @@ flutter:
     - assets/images/fox.jpg
     - assets/images/error_page.svg
     - assets/icons/
+    - assets/images/onboarding/экран1.png
+    - assets/images/onboarding/экран2.png
+    - assets/images/onboarding/экран2.jpg
+    - assets/images/onboarding/экран3.png

@@ -97,7 +97,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                   "Рестораны",
                   style: GoogleFonts.montserrat(
                     fontSize: 17,
-                    fontWeight: FontWeight.normal,
+                    fontWeight: FontWeight.w500,
                     color: const Color.fromARGB(255, 138, 138, 142),
                   ),
                 ),
@@ -166,7 +166,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                   "Блюда",
                   style: GoogleFonts.montserrat(
                     fontSize: 17,
-                    fontWeight: FontWeight.normal,
+                    fontWeight: FontWeight.w500,
                     color: const Color.fromARGB(255, 138, 138, 142),
                   ),
                 ),

@@ -55,13 +55,21 @@ class _KitchenItemState extends State<KitchenItem> {
     return Column(
       children: [
         if (imageUrl != null)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              imageUrl!,
-              width: widget.width,
-              height: widget.height,
-              fit: BoxFit.cover,
+          GestureDetector(
+            onTap: () {
+              // Define your action here
+              print('Image tapped: ${widget.name}');
+              // Example: Navigate to a new screen
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen(name: widget.name)));
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                imageUrl!,
+                width: widget.width,
+                height: widget.height,
+                fit: BoxFit.cover,
+              ),
             ),
           )
         else
