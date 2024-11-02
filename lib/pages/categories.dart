@@ -26,29 +26,38 @@ class _CategoiresState extends State<Categoires> {
             const SizedBox(height: 7), // Отступ 20 пикселей сверху
             Center(
               child: Container(
-                padding: const EdgeInsets.all(16.0),
                 width: MediaQuery.of(context).size.width * 0.92,
+                height: 100,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF4A261), // Цвет фона
+                  image: DecorationImage(
+                    image: AssetImage(
+                        'assets/images/рекламная карточка.jpg'), // Укажите путь к вашему изображению
+                    fit: BoxFit.cover, // Покрытие всего контейнера изображением
+                  ),
                   borderRadius: BorderRadius.circular(16.0), // Скругление углов
                 ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Text(
-                      'Обеденное меню\nв ресторане MIMO\nот 5 рублей',
-                      style: TextStyle(
-                        color: Colors.white, // Цвет текста
-                        fontSize: 20.0, // Размер шрифта
-                        fontWeight: FontWeight.bold, // Жирный шрифт
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(13, 12, 0, 15),
+                      child: Text(
+                        'Обеденное меню\nв ресторане MIMO\nот 5 рублей',
+                        style: GoogleFonts.montserrat(
+                            color: Colors.white, // Цвет текста
+                            fontSize: 17.0, // Размер шрифта
+                            fontWeight: FontWeight.bold,
+                            height: 0 // Жирный шрифт
+                            ),
                       ),
                     ),
-                    SizedBox(height: 8.0), // Отступ между текстами
-                    Text(
-                      'Первомайская 5',
-                      style: TextStyle(
-                        color: Colors.white, // Цвет текста
-                        fontSize: 16.0, // Размер шрифта
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
+                      child: Text(
+                        'Первомайская 5',
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white, // Цвет текста
+                          fontSize: 14.0, // Размер шрифта
+                        ),
                       ),
                     ),
                   ],

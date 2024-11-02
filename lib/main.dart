@@ -34,8 +34,19 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: OnboardingScreen(), // Здесь мы проверяем состояние аутентификации
+      home: _determineHomeScreen(), // Изменяем стартовый экран
     );
+  }
+
+  Widget _determineHomeScreen() {
+    // Проверка, авторизован ли пользователь
+    if (FirebaseAuth.instance.currentUser != null) {
+      // Если пользователь уже авторизован, открываем AuthWrapper
+      return const AuthWrapper();
+    } else {
+      // Если нет, открываем экран онбординга
+      return const OnboardingScreen();
+    }
   }
 }
 
