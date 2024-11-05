@@ -219,7 +219,7 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
   }
 }
 
-void showCustomBottomSheet(BuildContext context,
+void showRestBottomSheet(BuildContext context,
     {required String name, required String imageUrl}) {
   showModalBottomSheet(
     context: context,

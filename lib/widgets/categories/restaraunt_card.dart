@@ -26,7 +26,7 @@ class _RestarauntCardState extends State<RestarauntCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        showCustomBottomSheet(
+        showRestBottomSheet(
           context,
           name: widget.name,
           imageUrl: widget.imageUrl,

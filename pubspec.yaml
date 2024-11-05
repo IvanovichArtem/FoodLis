@@ -23,6 +23,7 @@ dependencies:
   firebase_storage: ^12.3.3
   cached_network_image: ^3.4.1
   widgets_to_image: ^1.0.0
+  flutter_localization: ^0.2.2
 
 dev_dependencies:
   flutter_test:
@@ -34,6 +35,7 @@ flutter:
 
   assets:
     - assets/images/booking/
+    - assets/images/dishes/
     - assets/svg/
     - assets/images/fox.jpg
     - assets/images/error_page.svg

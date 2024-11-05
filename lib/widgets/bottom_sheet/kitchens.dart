@@ -26,16 +26,13 @@ class _KitchensFilterWidgetState extends State<KitchensFilterWidget> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(
-              height:
-                  5), // Задайте нужный отступ между заголовком и первой строкой
+          const SizedBox(height: 5),
           GridView.count(
-            crossAxisCount: 3, // Количество столбцов
-            shrinkWrap: true, // Уменьшение высоты
-            crossAxisSpacing: 12, // Расстояние между столбцами
-            mainAxisSpacing: 0, // Расстояние между строками
-            physics:
-                const NeverScrollableScrollPhysics(), // Отключение прокрутки
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 0,
+            physics: const NeverScrollableScrollPhysics(),
             children: const [
               KitchenItem(
                 name: 'Азиатская',
@@ -71,7 +68,7 @@ class _KitchensFilterWidgetState extends State<KitchensFilterWidget> {
 
 class KitchenItem extends StatefulWidget {
   final String name;
-  final String imageUrl; // Путь к изображению в Firebase Storage
+  final String imageUrl;
 
   const KitchenItem({
     super.key,
@@ -85,6 +82,7 @@ class KitchenItem extends StatefulWidget {
 
 class _KitchenItemState extends State<KitchenItem> {
   String? _imageUrl;
+  bool _isSelected = false;
 
   @override
   void initState() {
@@ -93,7 +91,6 @@ class _KitchenItemState extends State<KitchenItem> {
   }
 
   Future<void> _loadImage() async {
-    // Получаем ссылку на изображение из Firebase Storage
     try {
       String downloadUrl =
           await FirebaseStorage.instance.ref(widget.imageUrl).getDownloadURL();
@@ -105,45 +102,62 @@ class _KitchenItemState extends State<KitchenItem> {
     }
   }
 
+  void _toggleSelection() {
+    setState(() {
+      _isSelected = !_isSelected;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {}, // Вы можете добавить свою логику по нажатию
-      child: SizedBox(
-        child: Column(
-          children: [
-            _imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: _imageUrl!,
-                    width: 120,
-                    placeholder: (context, url) =>
-                        const CircularProgressIndicator(),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
-                  )
-                : const SizedBox(
-                    height: 120,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-            SizedBox(
-              width: 110,
-              child: Text(
-                widget.name,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: GoogleFonts.montserrat(
-                  color: const Color.fromARGB(255, 92, 92, 92),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400,
-                ),
+      onTap: _toggleSelection,
+      child: Column(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: _isSelected
+                    ? const Color.fromARGB(255, 243, 175, 79)
+                    : Colors.transparent,
+                width: 3.0,
+              ),
+              borderRadius: BorderRadius.circular(8), // Match the image radius
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8), // Match the border radius
+              child: _imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: _imageUrl!,
+                      width: 120,
+                      placeholder: (context, url) =>
+                          const CircularProgressIndicator(),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
+                    )
+                  : const SizedBox(
+                      height: 120,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+            ),
+          ),
+          SizedBox(
+            width: 110,
+            child: Text(
+              widget.name,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: GoogleFonts.montserrat(
+                color: const Color.fromARGB(255, 92, 92, 92),
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
               ),
             ),
-            const SizedBox(
-              height: 2,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+        ],
       ),
     );
   }

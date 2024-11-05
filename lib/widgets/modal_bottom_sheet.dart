@@ -29,7 +29,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
   double receiptEndValue = 20.0;
   bool isYandexSelected = false;
   bool isDeliverySelected = false;
-  bool isRestaurantSelected = false;
+  bool isRestaurantSelected = true;
   bool isTodaySelected = false;
   bool isTomorrowSelected = false;
 
@@ -45,11 +45,11 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
     });
   }
 
-  void applyChanges() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Изменения применены!")),
-    );
-  }
+  // void applyChanges() {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text("Изменения применены!")),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +158,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: applyChanges,
+                    onPressed: () => {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 243, 175, 79),
                     ),

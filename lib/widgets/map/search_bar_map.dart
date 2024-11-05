@@ -5,7 +5,12 @@ import 'package:firebase_storage/firebase_storage.dart'; // Не забудьт�
 import 'package:food_lis/pages/map.dart'; // Импортируйте ваш экран с картой
 
 class SearchMapBar extends StatefulWidget {
-  const SearchMapBar({super.key});
+  final Function(List<Map<String, dynamic>>)
+      onSearchResultsUpdated; // Функция обратного вызова для обновления результатов
+
+  const SearchMapBar(
+      {super.key,
+      required this.onSearchResultsUpdated}); // Добавьте параметр конструктора
 
   @override
   State<SearchMapBar> createState() => _SearchMapBarState();
@@ -13,70 +18,41 @@ class SearchMapBar extends StatefulWidget {
 
 class _SearchMapBarState extends State<SearchMapBar> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> _searchResults = [];
 
   Future<void> _searchDatabase(String text) async {
-    // Получаем все данные из коллекции 'restaraunts'
     final querySnapshot =
         await FirebaseFirestore.instance.collection('restaraunts').get();
 
-    // Приводим введённый текст к нижнему регистру и убираем лишние пробелы
     final trimmedLowerText = text.trim().toLowerCase();
 
-    // Фильтруем данные на стороне клиента, приводя 'name' к нижнему регистру
     final filteredDocs = querySnapshot.docs.where((doc) {
       final nameLower = doc['name'].toString().toLowerCase();
       return nameLower.contains(trimmedLowerText);
     }).toList();
 
-    // Перебираем отфильтрованные документы и получаем URL изображений
     final List<Map<String, dynamic>> searchResults = [];
     for (var doc in filteredDocs) {
       final data = doc.data();
-      final imagePath = data['imageUrl']; // Извлекаем путь к изображению
+      final imagePath = data['imageUrl'];
 
-      // Получаем полный URL изображения из Firebase Storage
       final imageUrl =
           await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
 
-      // Обновляем данные с правильной ссылкой на изображение
       searchResults.add({
         'documentId': doc.id,
         ...data,
-        'imageUrl': imageUrl, // Заменяем путь на полный URL
+        'imageUrl': imageUrl,
       });
     }
 
-    // Обновляем состояние с результатами поиска
-    setState(() {
-      _searchResults = searchResults;
-    });
-  }
-
-  void _onSearchResultTap(Map<String, dynamic> restaurant) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MapScreen(
-          initialIndex: 0,
-          data: _searchResults,
-        ),
-      ),
-    );
+    // Вызываем функцию обратного вызова для обновления результатов в MapScreen
+    widget.onSearchResultsUpdated(searchResults);
   }
 
   void _handleSubmit() {
     final searchText = _searchController.text;
     if (searchText.isNotEmpty) {
-      _searchDatabase(searchText).then((_) {
-        if (_searchResults.isNotEmpty) {
-          _onSearchResultTap(_searchResults.first);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('По вашему запросу нет данных')),
-          );
-        }
-      });
+      _searchDatabase(searchText);
     }
   }
 
@@ -112,7 +88,6 @@ class _SearchMapBarState extends State<SearchMapBar> {
         ),
         style: GoogleFonts.montserrat(fontSize: 14),
         onChanged: (String value) {
-          // Вызываем поиск при изменении текста
           _searchDatabase(value);
         },
         onSubmitted: (value) => _handleSubmit(),

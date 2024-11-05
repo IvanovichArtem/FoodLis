@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class AvailableSeatsInfo extends StatefulWidget {
-  final bool isTodaySelected; // Параметр для кнопки "Сегодня"
-  final bool isTomorrowSelected; // Параметр для кнопки "Завтра"
+  final bool isTodaySelected;
+  final bool isTomorrowSelected;
 
   const AvailableSeatsInfo({
     super.key,
@@ -18,13 +19,28 @@ class AvailableSeatsInfo extends StatefulWidget {
 class _AvailableSeatsInfoState extends State<AvailableSeatsInfo> {
   late bool isTodaySelected;
   late bool isTomorrowSelected;
+  String selectedDateText = 'Указать дату';
 
   @override
   void initState() {
     super.initState();
-    // Инициализация состояния значениями из параметров
     isTodaySelected = widget.isTodaySelected;
     isTomorrowSelected = widget.isTomorrowSelected;
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+      locale: const Locale('ru'),
+    );
+    if (picked != null) {
+      setState(() {
+        selectedDateText = DateFormat('dd.MM.yyyy', 'ru').format(picked);
+      });
+    }
   }
 
   @override
@@ -46,7 +62,7 @@ class _AvailableSeatsInfoState extends State<AvailableSeatsInfo> {
               ),
             ],
           ),
-          const SizedBox(height: 10), // Отступ между заголовком и кнопками
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -68,8 +84,7 @@ class _AvailableSeatsInfoState extends State<AvailableSeatsInfo> {
                           ? const Color.fromARGB(255, 190, 190, 190)
                           : Colors.transparent,
                     ),
-                    borderRadius:
-                        BorderRadius.circular(10), // Закругленные края
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
                   child: Text(
@@ -120,36 +135,33 @@ class _AvailableSeatsInfoState extends State<AvailableSeatsInfo> {
                 height: 25,
                 width: 157,
                 child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {});
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: const BorderSide(
-                          color: Color.fromARGB(255, 243, 175, 79),
-                        ),
+                  onPressed: () => _selectDate(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: const BorderSide(
+                        color: Color.fromARGB(255, 243, 175, 79),
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize:
-                          MainAxisSize.min, // Минимальная ширина для кнопки
-                      children: [
-                        const Icon(Icons.calendar_today_outlined,
-                            size: 17, color: Color.fromARGB(255, 243, 175, 79)),
-                        const SizedBox(
-                            width: 5), // Отступ между иконкой и текстом
-                        Text(
-                          'Указать дату',
-                          style: GoogleFonts.montserrat(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
-                            color: const Color.fromARGB(255, 243, 175, 79),
-                          ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 17, color: Color.fromARGB(255, 243, 175, 79)),
+                      const SizedBox(width: 5),
+                      Text(
+                        selectedDateText,
+                        style: GoogleFonts.montserrat(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                          color: const Color.fromARGB(255, 243, 175, 79),
                         ),
-                      ],
-                    )),
+                      ),
+                    ],
+                  ),
+                ),
               )
             ],
           ),

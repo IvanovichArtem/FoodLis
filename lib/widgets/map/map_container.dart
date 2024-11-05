@@ -6,6 +6,8 @@ import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:location/location.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:food_lis/widgets/kitchen_modal/restaraunt_modal.dart';
 
 class MapContainer extends StatefulWidget {
   const MapContainer({super.key});
@@ -74,7 +76,8 @@ class _MapContainerState extends State<MapContainer> {
         String rating = data['avgReview'].toString();
         String price = data['avgPrice'].toString();
 
-        await _addRestaurantMarker(latitude, longitude, name, rating, price);
+        await _addRestaurantMarker(
+            latitude, longitude, name, rating, price, doc.id);
       } catch (e) {
         print('Ошибка при обработке документа: $e');
         continue;
@@ -172,16 +175,62 @@ class _MapContainerState extends State<MapContainer> {
     return byteData!.buffer.asUint8List();
   }
 
+  void _onPlacemarkTap(PlacemarkMapObject self, Point point) async {
+    // Выводим информацию о маркере и точке нажатия
+    print('Tapped placemark with ID: ${self.mapId}');
+    print(
+        'Coordinates of tapped placemark: ${self.point.latitude}, ${self.point.longitude}');
+    print('Tapped at point: ${point.latitude}, ${point.longitude}');
+
+    // Получаем данные из Firestore
+    try {
+      DocumentSnapshot document = await FirebaseFirestore.instance
+          .collection('restaraunts') // замените на название вашей коллекции
+          .doc(self.mapId.value) // используем mapId для получения документа
+          .get();
+
+      if (document.exists) {
+        // Получаем данные
+        var data = document.data() as Map<String, dynamic>;
+
+        String name =
+            data['name']; // Предполагаем, что в документе есть поле 'name'
+        String imagePath = data['imageUrl'];
+
+        String imageUrl =
+            await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
+
+        // Показываем детали ресторана
+        _showRestaurantDetails(name, imageUrl);
+      } else {
+        print('No restaurant found for the given ID.');
+      }
+    } catch (e) {
+      print('Error fetching restaurant details: $e');
+    }
+  }
+
+  void _showRestaurantDetails(String name, String imageUrl) {
+    showRestBottomSheet(
+      context,
+      name: name,
+      imageUrl: imageUrl,
+    );
+  }
+
   Future<void> _addRestaurantMarker(double latitude, double longitude,
-      String name, String rating, String price) async {
+      String name, String rating, String price, String id) async {
     // Создаем высококачественный маркер
     Uint8List markerBytes = await createCustomMarker(name, rating, price);
 
     // Добавляем маркер с масштабированием
     final mapObject = PlacemarkMapObject(
-      mapId: MapObjectId('restaurant_${latitude}_$longitude'),
+      mapId: MapObjectId(id),
       point: Point(latitude: latitude, longitude: longitude),
       opacity: 1,
+      onTap: (PlacemarkMapObject self, Point point) {
+        _onPlacemarkTap(self, point);
+      },
       icon: PlacemarkIcon.single(
         PlacemarkIconStyle(
           image: BitmapDescriptor.fromBytes(markerBytes),

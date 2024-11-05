@@ -5,6 +5,8 @@ import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:firebase_core/firebase_core.dart' show Firebase;
 import 'package:firebase_auth/firebase_auth.dart'; // Для работы с аутентификацией
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   AndroidYandexMap.useAndroidViewSurface = false;
@@ -23,7 +25,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('ru', ''), // Russian
+      ],
       theme: ThemeData(
+        primaryColor: Color.fromARGB(255, 243, 175, 79),
         splashFactory: NoSplash.splashFactory,
         scaffoldBackgroundColor: scaffoldBackgroundColor,
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
