@@ -87,9 +87,9 @@ class _SearchMapBarState extends State<SearchMapBar> {
               const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
         ),
         style: GoogleFonts.montserrat(fontSize: 14),
-        onChanged: (String value) {
-          _searchDatabase(value);
-        },
+        // onChanged: (String value) {
+        //   _searchDatabase(value);
+        // },
         onSubmitted: (value) => _handleSubmit(),
       ),
     );
