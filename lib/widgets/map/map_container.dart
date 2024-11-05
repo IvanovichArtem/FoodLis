@@ -32,10 +32,21 @@ class _MapContainerState extends State<MapContainer> {
 
   Future<void> _getCurrentLocation() async {
     Location location = Location();
-    await location.requestPermission();
-    _currentLocation = await location.getLocation();
-    _addCurrentLocationMarker();
-    await _fetchRestaurants();
+
+    // Проверка разрешений
+    PermissionStatus permissionGranted = await location.requestPermission();
+
+    if (permissionGranted == PermissionStatus.granted) {
+      // Если разрешение предоставлено, получаем местоположение
+      _currentLocation = await location.getLocation();
+      _addCurrentLocationMarker();
+      await _fetchRestaurants();
+    } else {
+      // Если пользователь отказался предоставить разрешение, показываем сообщение
+      print(
+          "Доступ к местоположению ограничен. Разрешите доступ для получения данных о ресторанах рядом.");
+      // Здесь можно добавить логику показа уведомления пользователю
+    }
   }
 
   void _addCurrentLocationMarker() {

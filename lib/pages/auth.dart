@@ -48,7 +48,17 @@ class _LoginPageState extends State<LoginPage> {
       );
       // Логика после успешного входа
     } on FirebaseAuthException catch (e) {
-      print('Ошибка входа: $e');
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage = 'Пользователь с таким email не найден.';
+      } else if (e.code == 'wrong-password' || e.code == "invalid-credential") {
+        errorMessage = 'Неверный пароль. Попробуйте еще раз.';
+      } else {
+        errorMessage = 'Ошибка: ${e.message}';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
@@ -244,6 +254,20 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Future<void> _register() async {
     try {
+      // Проверка правильности номера телефона
+      String phoneNumber = phoneController.text.trim();
+      final phoneRegExp = RegExp(r"^(\+375|8)[1-9]{1}[0-9]{8}$");
+
+      if (!phoneRegExp.hasMatch(phoneNumber)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Введите правильный номер телефона в формате +375XXXXXXXXX')),
+        );
+        return;
+      }
+
+      // Регистрация пользователя
       UserCredential userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
@@ -262,7 +286,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
       // Логика после успешной регистрации
     } on FirebaseAuthException catch (e) {
-      print('Ошибка регистрации: $e');
+      String errorMessage;
+      if (e.code == 'email-already-in-use') {
+        errorMessage = 'Этот email уже зарегистрирован.';
+      } else if (e.code == 'weak-password') {
+        errorMessage =
+            'Пароль слишком слабый. Используйте более надежный пароль.';
+      } else {
+        errorMessage = 'Ошибка: ${e.message}';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
@@ -460,6 +495,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController emailController = TextEditingController();
   static const Color greyLight = Color.fromARGB(255, 175, 175, 175);
   static const Color mainOrange = Color.fromARGB(255, 229, 145, 18);
+
   Future<void> _resetPassword() async {
     try {
       await FirebaseAuth.instance
@@ -470,7 +506,20 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 'Инструкции по восстановлению пароля отправлены на email')),
       );
     } on FirebaseAuthException catch (e) {
-      print('Ошибка восстановления пароля: $e');
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'Пользователь с таким email не найден';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Некорректный email';
+          break;
+        default:
+          errorMessage = 'Ошибка восстановления пароля: ${e.message}';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
