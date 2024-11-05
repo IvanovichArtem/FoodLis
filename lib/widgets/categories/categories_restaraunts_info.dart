@@ -44,6 +44,20 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
         });
       }
 
+      // Сортируем рестораны сначала по рейтингу (по убыванию), затем по количеству отзывов (по убыванию)
+      restaurantData.sort((a, b) {
+        final ratingComparison = b['rating'].compareTo(a['rating']);
+        if (ratingComparison != 0) {
+          return ratingComparison; // Если рейтинг не равен, сортируем только по рейтингу
+        }
+        return b['review_count'].compareTo(a[
+            'review_count']); // Если рейтинги равны, сортируем по количеству отзывов
+      });
+
+      if (restaurantData.length > 5) {
+        restaurantData = restaurantData.sublist(0, 5);
+      }
+
       setState(() {});
     } catch (e) {
       print('Error fetching restaurant data: $e');
@@ -69,6 +83,20 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
           'review_count': data['reviewCount'],
           'imageUrl': downloadUrl,
         });
+      }
+
+      // Сортируем блюда сначала по рейтингу (по убыванию), затем по количеству отзывов (по убыванию)
+      dishData.sort((a, b) {
+        final ratingComparison = b['rating'].compareTo(a['rating']);
+        if (ratingComparison != 0) {
+          return ratingComparison; // Если рейтинг не равен, сортируем только по рейтингу
+        }
+        return b['review_count'].compareTo(a[
+            'review_count']); // Если рейтинги равны, сортируем по количеству отзывов
+      });
+
+      if (dishData.length > 5) {
+        dishData = dishData.sublist(0, 5);
       }
 
       setState(() {});
