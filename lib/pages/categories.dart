@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -6,6 +7,7 @@ import 'package:food_lis/widgets/categories/categories_restaraunts_info.dart';
 import 'package:food_lis/widgets/categories/kitchens.dart';
 import 'package:food_lis/widgets/categories/search_bar.dart';
 import 'package:food_lis/widgets/modal_bottom_sheet.dart';
+import 'package:food_lis/widgets/categories/add_widget.dart';
 
 class Categoires extends StatefulWidget {
   const Categoires({super.key});
@@ -23,47 +25,8 @@ class _CategoiresState extends State<Categoires> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 7), // Отступ 20 пикселей сверху
-            Center(
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.92,
-                height: 100,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                        'assets/images/рекламная карточка.jpg'), // Укажите путь к вашему изображению
-                    fit: BoxFit.cover, // Покрытие всего контейнера изображением
-                  ),
-                  borderRadius: BorderRadius.circular(16.0), // Скругление углов
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(13, 12, 0, 15),
-                      child: Text(
-                        'Обеденное меню\nв ресторане MIMO\nот 5 рублей',
-                        style: GoogleFonts.montserrat(
-                            color: Colors.white, // Цвет текста
-                            fontSize: 17.0, // Размер шрифта
-                            fontWeight: FontWeight.bold,
-                            height: 0 // Жирный шрифт
-                            ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
-                      child: Text(
-                        'Первомайская 5',
-                        style: GoogleFonts.montserrat(
-                          color: Colors.white, // Цвет текста
-                          fontSize: 14.0, // Размер шрифта
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            HorizontalScrollAddWidget(),
+
             const SizedBox(
               height: 10,
             ),
@@ -221,7 +184,7 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
                   'Категории',
                   style: GoogleFonts.montserrat(
                     fontWeight: FontWeight.w800,
-                    color: const Color.fromARGB(255, 92, 92, 92),
+                    color: const Color.fromARGB(255, 48, 48, 48),
                     fontSize: 28,
                   ),
                 ),
@@ -232,7 +195,7 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
                   children: [
                     IconButton(
                       icon: const FaIcon(
-                        FontAwesomeIcons.heart,
+                        FontAwesomeIcons.bell,
                         color: Color.fromARGB(255, 138, 138, 142),
                       ),
                       splashColor: const Color.fromARGB(
@@ -244,7 +207,7 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                     IconButton(
                       icon: const FaIcon(
-                        FontAwesomeIcons.bell,
+                        FontAwesomeIcons.bookmark,
                         color: Color.fromARGB(255, 138, 138, 142),
                       ),
                       splashColor: const Color.fromARGB(
@@ -262,13 +225,6 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
           // Вторая строка с поисковой строкой
           Row(
             children: [
-              const Expanded(
-                child: SizedBox(
-                  height: 48,
-                  child: SearchInput(), // Ваш виджет поисковой строки
-                ),
-              ),
-              const SizedBox(width: 8), // Промежуток между элементами
               GestureDetector(
                 onTap: () {
                   showCustomBottomSheet(
@@ -282,11 +238,18 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
                     color: Color.fromARGB(255, 243, 175, 79),
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
-                  child: const FaIcon(
-                    FontAwesomeIcons.sliders,
-                    color: Colors.white,
-                    size: 16,
+                  child: SvgPicture.asset(
+                    'assets/svg/filter.svg',
+                    width: 28,
+                    height: 28,
                   ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: SearchInput(),
                 ),
               ),
             ],

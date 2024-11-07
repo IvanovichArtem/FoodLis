@@ -14,10 +14,10 @@ class ReceiptWidget extends StatefulWidget {
   });
 
   @override
-  State<ReceiptWidget> createState() => _ReceiptWidgetState();
+  State<ReceiptWidget> createState() => ReceiptWidgetState();
 }
 
-class _ReceiptWidgetState extends State<ReceiptWidget> {
+class ReceiptWidgetState extends State<ReceiptWidget> {
   late SfRangeValues _values;
 
   @override
@@ -80,6 +80,16 @@ class _ReceiptWidgetState extends State<ReceiptWidget> {
         ],
       ),
     );
+  }
+
+  void reset(double receiptStartValue, double receiptEndValue) {
+    setState(() {
+      _values = SfRangeValues(receiptStartValue, receiptEndValue);
+    });
+  }
+
+  getCurrentState() {
+    return [_values.start, _values.end];
   }
 }
 

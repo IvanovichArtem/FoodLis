@@ -43,8 +43,9 @@ class _MapContainerState extends State<MapContainer> {
       await _fetchRestaurants();
     } else {
       // Если пользователь отказался предоставить разрешение, показываем сообщение
-      print(
-          "Доступ к местоположению ограничен. Разрешите доступ для получения данных о ресторанах рядом.");
+      SnackBar(
+          content: Text(
+              "Доступ к местоположению ограничен. Разрешите доступ для получения данных о ресторанах рядом."));
       // Здесь можно добавить логику показа уведомления пользователю
     }
   }
@@ -118,6 +119,8 @@ class _MapContainerState extends State<MapContainer> {
 
     // Настройки текста для имени
     final textPainterName = TextPainter(
+      maxLines: 1,
+      ellipsis: '...',
       text: TextSpan(
         text: name,
         style: TextStyle(
@@ -212,7 +215,7 @@ class _MapContainerState extends State<MapContainer> {
             await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
 
         // Показываем детали ресторана
-        _showRestaurantDetails(name, imageUrl);
+        _showRestaurantDetails(self.mapId.value, name, imageUrl);
       } else {
         print('No restaurant found for the given ID.');
       }
@@ -221,9 +224,10 @@ class _MapContainerState extends State<MapContainer> {
     }
   }
 
-  void _showRestaurantDetails(String name, String imageUrl) {
+  void _showRestaurantDetails(String restId, String name, String imageUrl) {
     showRestBottomSheet(
       context,
+      restId: restId,
       name: name,
       imageUrl: imageUrl,
     );

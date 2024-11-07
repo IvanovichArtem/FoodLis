@@ -30,7 +30,7 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
         // Основной контейнер с содержимым
         Container(
           width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.92,
+          height: MediaQuery.of(context).size.height * 0.77,
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -69,13 +69,18 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    widget.name,
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      color:
-                                          const Color.fromARGB(255, 48, 48, 48),
+                                  SizedBox(
+                                    width: 150,
+                                    child: Text(
+                                      widget.name,
+                                      maxLines: 2,
+                                      textAlign: TextAlign.justify,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color.fromARGB(
+                                            255, 48, 48, 48),
+                                      ),
                                     ),
                                   ),
                                   const Spacer(),
@@ -220,7 +225,7 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
 }
 
 void showRestBottomSheet(BuildContext context,
-    {required String name, required String imageUrl}) {
+    {required String restId, required String name, required String imageUrl}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,

@@ -7,10 +7,20 @@ class KitchensFilterWidget extends StatefulWidget {
   const KitchensFilterWidget({super.key});
 
   @override
-  State<KitchensFilterWidget> createState() => _KitchensFilterWidgetState();
+  State<KitchensFilterWidget> createState() => KitchensFilterWidgetState();
 }
 
-class _KitchensFilterWidgetState extends State<KitchensFilterWidget> {
+class KitchensFilterWidgetState extends State<KitchensFilterWidget> {
+  // Структура для хранения состояния каждого KitchenItem
+  List<KitchenItemState> kitchenItems = List.generate(
+    6,
+    (index) => KitchenItemState(
+      name: _getKitchenName(index),
+      imageUrl: _getKitchenImageUrl(index),
+      isSelected: false,
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -33,47 +43,105 @@ class _KitchensFilterWidgetState extends State<KitchensFilterWidget> {
             crossAxisSpacing: 12,
             mainAxisSpacing: 0,
             physics: const NeverScrollableScrollPhysics(),
-            children: const [
-              KitchenItem(
-                name: 'Азиатская',
-                imageUrl: 'images/kitchens/азиатская.jpg',
-              ),
-              KitchenItem(
-                name: 'Итальянская',
-                imageUrl: 'images/kitchens/итальянская кухня_2.jpg',
-              ),
-              KitchenItem(
-                name: 'Грузинская',
-                imageUrl: 'images/kitchens/грузинская.jpg',
-              ),
-              KitchenItem(
-                name: 'Мексиканская',
-                imageUrl: 'images/kitchens/мексиканская.jpg',
-              ),
-              KitchenItem(
-                name: 'Белорусская',
-                imageUrl: 'images/kitchens/белорусская.jpg',
-              ),
-              KitchenItem(
-                name: 'Вегетарианская',
-                imageUrl: 'images/kitchens/вегетарианская.jpg',
-              ),
-            ],
+            children: List.generate(6, (index) {
+              return KitchenItem(
+                isSelected: kitchenItems[index].isSelected,
+                name: kitchenItems[index].name,
+                imageUrl: kitchenItems[index].imageUrl,
+                onSelected: (isSelected) {
+                  setState(() {
+                    kitchenItems[index].isSelected = isSelected;
+                  });
+                },
+              );
+            }),
           ),
         ],
       ),
     );
   }
+
+  // Метод для получения текущего состояния выбранных категорий
+  List<String> getCurrentState() {
+    return kitchenItems
+        .where((item) => item.isSelected)
+        .map((item) => item.name)
+        .toList();
+  }
+
+  void reset() {
+    setState(() {
+      for (var item in kitchenItems) {
+        item.isSelected = false;
+      }
+    });
+  }
+
+  // Методы для получения имени и URL для кухни
+  static String _getKitchenName(int index) {
+    switch (index) {
+      case 0:
+        return 'Азиатская';
+      case 1:
+        return 'Итальянская';
+      case 2:
+        return 'Грузинская';
+      case 3:
+        return 'Мексиканская';
+      case 4:
+        return 'Белорусская';
+      case 5:
+        return 'Вегетарианская';
+      default:
+        return '';
+    }
+  }
+
+  static String _getKitchenImageUrl(int index) {
+    switch (index) {
+      case 0:
+        return 'images/kitchens/азиатская.jpg';
+      case 1:
+        return 'images/kitchens/итальянская кухня_2.jpg';
+      case 2:
+        return 'images/kitchens/грузинская.jpg';
+      case 3:
+        return 'images/kitchens/мексиканская.jpg';
+      case 4:
+        return 'images/kitchens/белорусская.jpg';
+      case 5:
+        return 'images/kitchens/вегетарианская.jpg';
+      default:
+        return '';
+    }
+  }
+}
+
+// Модель для хранения состояния каждого элемента
+class KitchenItemState {
+  String name;
+  String imageUrl;
+  bool isSelected;
+
+  KitchenItemState({
+    required this.name,
+    required this.imageUrl,
+    required this.isSelected,
+  });
 }
 
 class KitchenItem extends StatefulWidget {
   final String name;
   final String imageUrl;
+  final bool isSelected;
+  final ValueChanged<bool> onSelected;
 
   const KitchenItem({
     super.key,
     required this.name,
     required this.imageUrl,
+    required this.isSelected,
+    required this.onSelected,
   });
 
   @override
@@ -82,7 +150,6 @@ class KitchenItem extends StatefulWidget {
 
 class _KitchenItemState extends State<KitchenItem> {
   String? _imageUrl;
-  bool _isSelected = false;
 
   @override
   void initState() {
@@ -102,31 +169,27 @@ class _KitchenItemState extends State<KitchenItem> {
     }
   }
 
-  void _toggleSelection() {
-    setState(() {
-      _isSelected = !_isSelected;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _toggleSelection,
+      onTap: () {
+        widget.onSelected(!widget.isSelected);
+      },
       child: Column(
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             decoration: BoxDecoration(
               border: Border.all(
-                color: _isSelected
+                color: widget.isSelected
                     ? const Color.fromARGB(255, 243, 175, 79)
                     : Colors.transparent,
                 width: 3.0,
               ),
-              borderRadius: BorderRadius.circular(8), // Match the image radius
+              borderRadius: BorderRadius.circular(8),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8), // Match the border radius
+              borderRadius: BorderRadius.circular(8),
               child: _imageUrl != null
                   ? CachedNetworkImage(
                       imageUrl: _imageUrl!,

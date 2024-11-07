@@ -10,10 +10,10 @@ class RestarauntTypeWidget extends StatefulWidget {
   });
 
   @override
-  State<RestarauntTypeWidget> createState() => _RestarauntTypeWidgetState();
+  State<RestarauntTypeWidget> createState() => RestarauntTypeWidgetState();
 }
 
-class _RestarauntTypeWidgetState extends State<RestarauntTypeWidget> {
+class RestarauntTypeWidgetState extends State<RestarauntTypeWidget> {
   late List<Map<String, dynamic>> buttons;
 
   @override
@@ -105,5 +105,30 @@ class _RestarauntTypeWidgetState extends State<RestarauntTypeWidget> {
         ],
       ),
     );
+  }
+
+  // Метод для сброса состояния
+  void reset() {
+    setState(() {
+      buttons = [
+        {'name': 'Ресторан', 'isSelected': false},
+        {'name': 'Кафе', 'isSelected': false},
+        {'name': 'Бар', 'isSelected': false},
+        {'name': 'Караоке', 'isSelected': false},
+        {'name': 'Чайная', 'isSelected': false},
+        {'name': 'Пекарня', 'isSelected': false},
+        {'name': 'Кальян', 'isSelected': false},
+        {'name': 'Бабл ти', 'isSelected': false},
+      ];
+    });
+  }
+
+  // Метод для получения текущего состояния кнопок
+  Map<String, bool> getCurrentState() {
+    Map<String, bool> currentState = {};
+    for (var button in buttons) {
+      currentState[button['name']] = button['isSelected'];
+    }
+    return currentState;
   }
 }

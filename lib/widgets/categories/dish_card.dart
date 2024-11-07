@@ -62,9 +62,10 @@ class _DishCardState extends State<DishCard> {
               borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(10)), // Добавьте радиус
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Color.fromRGBO(135, 135, 139, 0.95),
-                ),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    border:
+                        Border.all(color: Color.fromARGB(255, 235, 235, 235))),
                 child: Column(
                   children: [
                     Padding(
@@ -77,7 +78,7 @@ class _DishCardState extends State<DishCard> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.montserrat(
-                                color: Colors.white,
+                                color: Color.fromARGB(255, 48, 48, 48),
                                 fontWeight: FontWeight.w400,
                                 fontSize: 14,
                               ),
@@ -95,7 +96,7 @@ class _DishCardState extends State<DishCard> {
                             style: GoogleFonts.montserrat(
                               color: const Color.fromARGB(255, 191, 191, 191),
                               fontWeight: FontWeight.w400,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -108,7 +109,7 @@ class _DishCardState extends State<DishCard> {
                           Text(
                             widget.rating.toString().replaceAll('.', ','),
                             style: GoogleFonts.montserrat(
-                              color: Colors.white,
+                              color: Color.fromARGB(255, 114, 114, 114),
                               fontWeight: FontWeight.w400,
                               fontSize: 12,
                             ),
@@ -116,13 +117,13 @@ class _DishCardState extends State<DishCard> {
                           const SizedBox(width: 1),
                           const Icon(
                             Icons.star_rounded,
-                            color: Colors.white,
+                            color: Colors.orange,
                             size: 10,
                           ),
                           Text(
                             "  ${widget.review_count} отзыва",
                             style: GoogleFonts.montserrat(
-                              color: Colors.white,
+                              color: Color.fromARGB(255, 114, 114, 114),
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
                             ),

@@ -88,10 +88,27 @@ class _SearchInputState extends State<SearchInput> {
           controller: _searchController,
           decoration: InputDecoration(
             hintText: 'Поиск',
-            hintStyle: GoogleFonts.montserrat(color: Colors.grey),
-            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+            hintStyle: GoogleFonts.montserrat(
+              color: Color.fromARGB(255, 114, 114, 114),
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+            ),
+            prefixIcon: const Icon(
+              Icons.search,
+              color: Color.fromARGB(255, 114, 114, 114),
+              size: 24,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                Icons.mic,
+                color: Color.fromARGB(255, 114, 114, 114),
+                size: 24,
+              ),
+              onPressed: () =>
+                  {print("АБОБА")}, // Функция для обработки нажатия
+            ),
             filled: true,
-            fillColor: Colors.grey[300],
+            fillColor: Color.fromARGB(255, 235, 235, 235),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.0),
               borderSide: BorderSide.none,
@@ -104,8 +121,11 @@ class _SearchInputState extends State<SearchInput> {
               borderRadius: BorderRadius.circular(10.0),
               borderSide: BorderSide.none,
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+            contentPadding: const EdgeInsets.only(
+              left: 10.0, // Смещаем текст ближе к иконке поиска
+              top: 5.0,
+              bottom: 10.0,
+            ),
           ),
           style: GoogleFonts.montserrat(fontSize: 14),
           onChanged: (String value) {

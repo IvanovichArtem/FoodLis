@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:food_lis/widgets/map/search_bar_map.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -59,6 +60,7 @@ class _MapScreenState extends State<MapScreen> {
 
       setState(() {
         restaurantData = data;
+        _listScreenKey.currentState?.updateData(restaurantData);
       });
     } catch (e) {
       print('Error fetching data: $e');
@@ -344,7 +346,7 @@ class ListScreen extends StatefulWidget {
 }
 
 class _ListScreenState extends State<ListScreen> {
-  late List<Map<String, dynamic>> currentData;
+  List<Map<String, dynamic>> currentData = [];
   bool isLoading = false;
 
   @override
@@ -393,7 +395,7 @@ class _ListScreenState extends State<ListScreen> {
           final isBookmarked = bookmarkSnapshot.exists
               ? bookmarkSnapshot['isBookmarked'] ?? false
               : false;
-
+          print(doc);
           return {
             'avgPrice': doc['avgPrice'],
             'avgReview': doc['avgReview'],
@@ -455,7 +457,8 @@ class _ListScreenState extends State<ListScreen> {
                         return Center(child: Text('Ошибка: ${snapshot.error}'));
                       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return Center(
-                            child: Text('Нет данных для отображения'));
+                            child: SvgPicture.asset(
+                                'assets/images/error_page.svg'));
                       } else {
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -615,6 +618,7 @@ class _SearchItemState extends State<SearchItem> {
   void _showRestaurantDetails() {
     showRestBottomSheet(
       context,
+      restId: widget.documentId,
       name: widget.name,
       imageUrl: widget.imageUrl,
     );

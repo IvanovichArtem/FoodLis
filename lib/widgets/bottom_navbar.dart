@@ -16,38 +16,16 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
-  final List<BottomNavigationBarItem> _items = [];
+  final Color _selectedColor = const Color(0xFFF3AF4F);
+  final Color _unselectedColor = Colors.grey;
 
-  final Color _selectedColor =
-      const Color(0xFFF3AF4F); // Цвет для выбранного элемента
-  final Color _unselectedColor = Colors.grey; // Цвет для невыбранных элементов
-
-  @override
-  void initState() {
-    super.initState();
-    _items.addAll([
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.grid_view),
-        label: '',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.location_on_outlined),
-        label: '',
-      ),
-      BottomNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/challenge.svg',
-          color: _unselectedColor, // Изначальный цвет для SVG
-          width: 30,
-          height: 30,
-        ),
-        label: '',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.account_circle_outlined),
-        label: '',
-      ),
-    ]);
+  Widget _buildSvgIcon(String assetName, bool isSelected) {
+    return SvgPicture.asset(
+      assetName,
+      color: isSelected ? Colors.white : _unselectedColor,
+      width: 24, // Уменьшенный размер иконок
+      height: 24,
+    );
   }
 
   @override
@@ -69,50 +47,75 @@ class _BottomNavBarState extends State<BottomNavBar> {
       child: BottomNavigationBar(
         selectedFontSize: 0,
         unselectedFontSize: 0,
-        items: _items.map((item) {
-          int index = _items.indexOf(item);
-          bool isSelected = index == widget.selectedIndex;
-          Widget icon;
-          // Проверяем, является ли иконка SVG
-          if (item.icon is SvgPicture) {
-            icon = SvgPicture.asset(
-              'assets/svg/challenge.svg',
-              color: isSelected
-                  ? Colors.white
-                  : _unselectedColor, // Меняем цвет SVG в зависимости от выбора
-              width: 30, // Размеры иконки SVG
-              height: 30,
-            );
-          } else {
-            // Для обычных иконок
-            icon = IconTheme(
-              data: IconThemeData(
-                color: isSelected ? Colors.white : _unselectedColor,
-                size: 30,
-              ),
-              child: item.icon,
-            );
-          }
-
-          return BottomNavigationBarItem(
+        items: [
+          BottomNavigationBarItem(
+            icon: Container(
+              width: 50, // Уменьшенный размер контейнера
+              height: 50,
+              padding:
+                  const EdgeInsets.all(8), // Отступ для иконки внутри круга
+              decoration: widget.selectedIndex == 0
+                  ? BoxDecoration(
+                      color: _selectedColor,
+                      shape: BoxShape.circle,
+                    )
+                  : null,
+              child: _buildSvgIcon(
+                  'assets/svg/grid.svg', widget.selectedIndex == 0),
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
             icon: Container(
               width: 50,
               height: 50,
-              decoration: isSelected
+              padding: const EdgeInsets.all(8),
+              decoration: widget.selectedIndex == 1
                   ? BoxDecoration(
+                      color: _selectedColor,
                       shape: BoxShape.circle,
-                      color: _selectedColor.withOpacity(1),
                     )
                   : null,
-              padding: const EdgeInsets.all(8),
-              child: icon, // Подставляем соответствующий виджет иконки
+              child: _buildSvgIcon('assets/svg/bottom_navbar_pin.svg',
+                  widget.selectedIndex == 1),
             ),
             label: '',
-          );
-        }).toList(),
+          ),
+          BottomNavigationBarItem(
+            icon: Container(
+              width: 50,
+              height: 50,
+              padding: const EdgeInsets.all(8),
+              decoration: widget.selectedIndex == 2
+                  ? BoxDecoration(
+                      color: _selectedColor,
+                      shape: BoxShape.circle,
+                    )
+                  : null,
+              child: _buildSvgIcon(
+                  'assets/svg/challenge.svg', widget.selectedIndex == 2),
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Container(
+              width: 50,
+              height: 50,
+              padding: const EdgeInsets.all(8),
+              decoration: widget.selectedIndex == 3
+                  ? BoxDecoration(
+                      color: _selectedColor,
+                      shape: BoxShape.circle,
+                    )
+                  : null,
+              child: _buildSvgIcon(
+                  'assets/svg/account_circle.svg', widget.selectedIndex == 3),
+            ),
+            label: '',
+          ),
+        ],
         currentIndex: widget.selectedIndex,
         selectedItemColor: Colors.white,
-        selectedIconTheme: IconThemeData(color: _selectedColor),
         unselectedItemColor: _unselectedColor,
         onTap: widget.onItemTapped,
       ),

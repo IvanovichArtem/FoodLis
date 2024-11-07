@@ -7,10 +7,10 @@ class DistanceWidget extends StatefulWidget {
   const DistanceWidget({super.key});
 
   @override
-  State<DistanceWidget> createState() => _DistanceWidgetState();
+  State<DistanceWidget> createState() => DistanceWidgetState();
 }
 
-class _DistanceWidgetState extends State<DistanceWidget> {
+class DistanceWidgetState extends State<DistanceWidget> {
   double _value = 4.0;
 
   @override
@@ -67,6 +67,16 @@ class _DistanceWidgetState extends State<DistanceWidget> {
         ],
       ),
     );
+  }
+
+  void reset() {
+    setState(() {
+      _value = 4.0;
+    });
+  }
+
+  getCurrentState() {
+    return _value;
   }
 }
 

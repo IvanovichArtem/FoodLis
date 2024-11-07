@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:food_lis/widgets/kitchen_modal/restaraunt_modal.dart';
 
 class RestarauntCard extends StatefulWidget {
+  final String docId;
   final String name;
   final double rating;
   final int reviewCount;
@@ -15,6 +16,7 @@ class RestarauntCard extends StatefulWidget {
     required this.rating,
     required this.reviewCount,
     required this.imageUrl,
+    required this.docId,
   });
 
   @override
@@ -28,6 +30,7 @@ class _RestarauntCardState extends State<RestarauntCard> {
       onTap: () {
         showRestBottomSheet(
           context,
+          restId: widget.docId,
           name: widget.name,
           imageUrl: widget.imageUrl,
         );
@@ -35,7 +38,8 @@ class _RestarauntCardState extends State<RestarauntCard> {
       child: Container(
         width: 140,
         height: 196,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
+          border: Border.all(color: Color.fromARGB(255, 235, 235, 235)),
           borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
         child: Stack(
@@ -70,7 +74,8 @@ class _RestarauntCardState extends State<RestarauntCard> {
                 ),
                 child: Container(
                   decoration: const BoxDecoration(
-                    color: Color.fromRGBO(135, 135, 139, 0.95),
+                    color: Colors.white,
+                    border: Border(),
                   ),
                   child: Column(
                     children: [
@@ -84,7 +89,7 @@ class _RestarauntCardState extends State<RestarauntCard> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.montserrat(
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 48, 48, 48),
                                   fontWeight: FontWeight.w400,
                                   fontSize: 14,
                                 ),
@@ -100,7 +105,7 @@ class _RestarauntCardState extends State<RestarauntCard> {
                             Text(
                               widget.rating.toString().replaceAll('.', ','),
                               style: GoogleFonts.montserrat(
-                                color: Colors.white,
+                                color: Color.fromARGB(255, 114, 114, 114),
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12,
                               ),
@@ -108,13 +113,13 @@ class _RestarauntCardState extends State<RestarauntCard> {
                             const SizedBox(width: 1),
                             const Icon(
                               Icons.star_rounded,
-                              color: Colors.white,
+                              color: Colors.orange,
                               size: 10,
                             ),
                             Text(
                               "  ${widget.reviewCount} отзыва",
                               style: GoogleFonts.montserrat(
-                                color: Colors.white,
+                                color: Color.fromARGB(255, 114, 114, 114),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                               ),

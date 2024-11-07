@@ -6,10 +6,18 @@ class DinnerInfo extends StatefulWidget {
   const DinnerInfo({super.key});
 
   @override
-  State<DinnerInfo> createState() => _DinnerInfoState();
+  State<DinnerInfo> createState() => DinnerInfoState();
 }
 
-class _DinnerInfoState extends State<DinnerInfo> {
+class DinnerInfoState extends State<DinnerInfo> {
+  final ValueNotifier<bool> isSelectedNotifier = ValueNotifier(false);
+
+  @override
+  void dispose() {
+    isSelectedNotifier.dispose(); // Освобождаем ресурсы
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -28,11 +36,19 @@ class _DinnerInfoState extends State<DinnerInfo> {
                 ),
               ),
               const Spacer(),
-              const CustomToggleSwitch(),
+              CustomToggleSwitch(isSelectedNotifier: isSelectedNotifier),
             ],
           ),
         ],
       ),
     );
+  }
+
+  void reset() {
+    isSelectedNotifier.value = false; // Сбрасываем состояние переключателя
+  }
+
+  getCurrentState() {
+    return {'haveLanch': isSelectedNotifier.value};
   }
 }

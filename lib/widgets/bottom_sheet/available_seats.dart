@@ -13,10 +13,10 @@ class AvailableSeatsInfo extends StatefulWidget {
   });
 
   @override
-  State<AvailableSeatsInfo> createState() => _AvailableSeatsInfoState();
+  State<AvailableSeatsInfo> createState() => AvailableSeatsInfoState();
 }
 
-class _AvailableSeatsInfoState extends State<AvailableSeatsInfo> {
+class AvailableSeatsInfoState extends State<AvailableSeatsInfo> {
   late bool isTodaySelected;
   late bool isTomorrowSelected;
   String selectedDateText = 'Указать дату';
@@ -168,5 +168,22 @@ class _AvailableSeatsInfoState extends State<AvailableSeatsInfo> {
         ],
       ),
     );
+  }
+
+  void reset() {
+    setState(() {
+      isTodaySelected = false;
+      isTomorrowSelected = false;
+      selectedDateText = 'Указать дату';
+    });
+  }
+
+  getCurrentState() {
+    return {
+      'isTodaySelected': isTodaySelected,
+      'isTomorrowSelected': isTomorrowSelected,
+      'selectedDate':
+          (selectedDateText == "Указать дату") ? null : selectedDateText
+    };
   }
 }

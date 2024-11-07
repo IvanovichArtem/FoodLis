@@ -32,11 +32,14 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
         final storagePath = data['imageUrl'];
-
+        if (storagePath.length == 0) {
+          continue;
+        }
         final downloadUrl =
             await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
 
         restaurantData.add({
+          'restId': doc.id,
           'name': data['name'],
           'rating': data['avgReview'],
           'review_count': data['cntReviews'],
@@ -171,6 +174,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                   return Row(
                     children: [
                       RestarauntCard(
+                        docId: restaurant['restId'],
                         name: restaurant['name'],
                         rating: restaurant['rating'].toDouble(),
                         reviewCount: restaurant['review_count'],

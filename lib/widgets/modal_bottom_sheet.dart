@@ -25,13 +25,32 @@ class _BottomSheetContent extends StatefulWidget {
 }
 
 class __BottomSheetContentState extends State<_BottomSheetContent> {
+  final GlobalKey<ReceiptWidgetState> receiptKey =
+      GlobalKey<ReceiptWidgetState>();
+  final GlobalKey<KitchensFilterWidgetState> kitchensKey =
+      GlobalKey<KitchensFilterWidgetState>();
+  final GlobalKey<RestarauntTypeWidgetState> restaurantTypeKey =
+      GlobalKey<RestarauntTypeWidgetState>();
+  final GlobalKey<DistanceWidgetState> distanceKey =
+      GlobalKey<DistanceWidgetState>();
+  final GlobalKey<DeliveryInfoState> deliveryKey =
+      GlobalKey<DeliveryInfoState>();
+  final GlobalKey<AvailableSeatsInfoState> availableSeatsKey =
+      GlobalKey<AvailableSeatsInfoState>();
+  final GlobalKey<DinnerInfoState> dinnerKey = GlobalKey<DinnerInfoState>();
+
   double receiptStartValue = 10.0;
   double receiptEndValue = 20.0;
   bool isYandexSelected = false;
   bool isDeliverySelected = false;
-  bool isRestaurantSelected = true;
+  bool isRestaurantSelected = false;
   bool isTodaySelected = false;
   bool isTomorrowSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void resetStates() {
     setState(() {
@@ -43,13 +62,34 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
       isTodaySelected = false;
       isTomorrowSelected = false;
     });
+
+    // Reset each widget via its key
+    receiptKey.currentState?.reset(receiptStartValue, receiptEndValue);
+    kitchensKey.currentState?.reset();
+    restaurantTypeKey.currentState?.reset();
+    distanceKey.currentState?.reset();
+    deliveryKey.currentState?.reset();
+    availableSeatsKey.currentState?.reset();
+    dinnerKey.currentState?.reset();
   }
 
-  // void applyChanges() {
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(content: Text("Изменения применены!")),
-  //   );
-  // }
+  void filter() {
+    // Получаем состояние всех виджетов в одном Map
+    Map<String, dynamic> currentState = {
+      'Receipt Widget State': receiptKey.currentState?.getCurrentState(),
+      'Kitchens Filter State': kitchensKey.currentState?.getCurrentState(),
+      'Restaurant Type State':
+          restaurantTypeKey.currentState?.getCurrentState(),
+      'Distance Widget State': distanceKey.currentState?.getCurrentState(),
+      'Delivery Info State': deliveryKey.currentState?.getCurrentState(),
+      'Available Seats Info State':
+          availableSeatsKey.currentState?.getCurrentState(),
+      'Dinner Info State': dinnerKey.currentState?.getCurrentState(),
+    };
+
+    // Выводим все данные в консоль
+    print("Current States: $currentState");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,15 +122,15 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ReceiptWidget(
+                    key: receiptKey,
                     startValue: receiptStartValue,
                     endValue: receiptEndValue,
                   ),
-                  KitchensFilterWidget(
-                      // Provide necessary state or callbacks
-                      ),
+                  KitchensFilterWidget(key: kitchensKey),
                   RestarauntTypeWidget(
+                    key: restaurantTypeKey,
                     buttonsData: [
-                      {'name': 'Ресторан', 'isSelected': isRestaurantSelected},
+                      {'name': 'Ресторан', 'isSelected': false},
                       {'name': 'Кафе', 'isSelected': false},
                       {'name': 'Бар', 'isSelected': false},
                       {'name': 'Караоке', 'isSelected': false},
@@ -100,21 +140,19 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                       {'name': 'Бабл ти', 'isSelected': false},
                     ],
                   ),
-                  DistanceWidget(
-                      // Provide necessary state or callbacks
-                      ),
+                  DistanceWidget(key: distanceKey),
                   DeliveryInfo(
+                    key: deliveryKey,
                     isYandexSelected: isYandexSelected,
                     isDeliverySelected: isDeliverySelected,
                     isRestaurantSelected: isRestaurantSelected,
                   ),
                   AvailableSeatsInfo(
+                    key: availableSeatsKey,
                     isTodaySelected: isTodaySelected,
                     isTomorrowSelected: isTomorrowSelected,
                   ),
-                  DinnerInfo(
-                      // Provide necessary state or callbacks
-                      ),
+                  DinnerInfo(key: dinnerKey),
                   const SizedBox(height: 5),
                 ],
               ),
@@ -158,7 +196,9 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () => {},
+                    onPressed: () {
+                      filter();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 243, 175, 79),
                     ),
