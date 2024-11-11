@@ -79,7 +79,7 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
         children: [
           // Рестораны
           Padding(
-            padding: const EdgeInsets.fromLTRB(15, 12, 15, 10),
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 5),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -138,7 +138,7 @@ class _ProfileRestDishInfoState extends State<ProfileRestDishInfo> {
 
           //Блюда
           Padding(
-            padding: const EdgeInsets.fromLTRB(15, 15, 15, 10),
+            padding: const EdgeInsets.fromLTRB(15, 5, 15, 5),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [

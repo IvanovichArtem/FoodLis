@@ -39,7 +39,7 @@ class _ProfileState extends State<Profile> {
                 child: Text(
                   "Бронирования",
                   style: GoogleFonts.montserrat(
-                    color: const Color.fromARGB(255, 92, 92, 92),
+                    color: const Color.fromARGB(255, 48, 48, 48),
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -59,7 +59,7 @@ class _ProfileState extends State<Profile> {
                   Text(
                     "Мой рейтинг",
                     style: GoogleFonts.montserrat(
-                        color: const Color.fromARGB(255, 92, 92, 92),
+                        color: const Color.fromARGB(255, 48, 48, 48),
                         fontSize: 20,
                         fontWeight: FontWeight.w700),
                   ),
@@ -94,9 +94,9 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(
         'Профиль',
         style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.bold,
-            color: const Color.fromARGB(255, 92, 92, 92),
-            fontSize: 32),
+            fontWeight: FontWeight.w800,
+            color: const Color.fromARGB(255, 48, 48, 48),
+            fontSize: 28),
       ),
       actions: [
         Padding(

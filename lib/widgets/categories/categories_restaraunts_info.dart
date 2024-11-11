@@ -41,9 +41,13 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
         restaurantData.add({
           'restId': doc.id,
           'name': data['name'],
-          'rating': data['avgReview'],
-          'review_count': data['cntReviews'],
+          'avgReview': data['avgReview'],
+          'cntReviews': data['cntReviews'],
           'imageUrl': downloadUrl,
+          'endTime': data['endTime'],
+          'restarauntType': data['restarauntType'],
+          'avgPrice': data['avgPrice'],
+          'isToogle': false,
         });
       }
 
@@ -176,9 +180,14 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                       RestarauntCard(
                         docId: restaurant['restId'],
                         name: restaurant['name'],
-                        rating: restaurant['rating'].toDouble(),
-                        reviewCount: restaurant['review_count'],
+                        restarauntType: restaurant['restarauntType'],
+                        avgReview: restaurant['avgReview'].toDouble(),
+                        cntReviews: restaurant['cntReviews'],
                         imageUrl: restaurant['imageUrl'],
+                        endTime: restaurant['endTime'],
+                        timeByWalk: 5,
+                        avgPrice: restaurant['avgPrice'],
+                        isToogle: restaurant['isToogle'],
                       ),
                       if (index < restaurantData.length - 1)
                         const SizedBox(width: 8),

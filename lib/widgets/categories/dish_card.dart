@@ -23,6 +23,18 @@ class DishCard extends StatefulWidget {
 }
 
 class _DishCardState extends State<DishCard> {
+  String getReviewWord(int count) {
+    if (count % 10 == 1 && count % 100 != 11) {
+      return "$count отзыв";
+    } else if (count % 10 >= 2 &&
+        count % 10 <= 4 &&
+        (count % 100 < 10 || count % 100 >= 20)) {
+      return "$count отзыва";
+    } else {
+      return "$count отзывов";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -121,7 +133,7 @@ class _DishCardState extends State<DishCard> {
                             size: 10,
                           ),
                           Text(
-                            "  ${widget.review_count} отзыва",
+                            "  ${getReviewWord(widget.review_count)}",
                             style: GoogleFonts.montserrat(
                               color: Color.fromARGB(255, 114, 114, 114),
                               fontSize: 12,

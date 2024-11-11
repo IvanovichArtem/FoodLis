@@ -59,7 +59,7 @@ class _SearchMapBarState extends State<SearchMapBar> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 290,
+      width: 270,
       height: 36,
       child: TextField(
         controller: _searchController,

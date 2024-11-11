@@ -9,11 +9,25 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class CustomBottomSheet extends StatefulWidget {
   final String name;
   final String imageUrl;
+  final String restarauntType;
+  final String endTime;
+  final double avgReview;
+  final int cntReviews;
+  final int timeByWalk;
+  final int avgPrice;
+  final bool isToogle;
 
   const CustomBottomSheet({
     super.key,
     required this.name,
     required this.imageUrl,
+    required this.restarauntType,
+    required this.endTime,
+    required this.avgReview,
+    required this.cntReviews,
+    required this.timeByWalk,
+    required this.avgPrice,
+    required this.isToogle,
   });
 
   @override
@@ -127,12 +141,12 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                                 ],
                               ),
                             ),
-                            const RestarauntInfo(
-                              restarauntType: 'Ресторан итальянской кухни',
-                              rating_count: 105,
-                              ratingMean: 4.5,
-                              closingDate: '22:00',
-                              meanCost: 24,
+                            RestarauntInfo(
+                              restarauntType: widget.restarauntType,
+                              rating_count: widget.cntReviews,
+                              ratingMean: widget.avgReview,
+                              closingDate: widget.endTime,
+                              meanCost: widget.avgPrice,
                             ),
                             const RestarauntBestDishes(),
                             const BlogerReviews(
@@ -225,13 +239,32 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
 }
 
 void showRestBottomSheet(BuildContext context,
-    {required String restId, required String name, required String imageUrl}) {
+    {required String restId,
+    required String name,
+    required String imageUrl,
+    required String restarauntType,
+    required String endTime,
+    required double avgReview,
+    required int cntReviews,
+    required int timeByWalk,
+    required int avgPrice,
+    required bool isToogle}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (BuildContext context) {
-      return CustomBottomSheet(name: name, imageUrl: imageUrl);
+      return CustomBottomSheet(
+        name: name,
+        imageUrl: imageUrl,
+        restarauntType: restarauntType,
+        endTime: endTime,
+        avgReview: avgReview,
+        cntReviews: cntReviews,
+        timeByWalk: timeByWalk,
+        avgPrice: avgPrice,
+        isToogle: isToogle,
+      );
     },
   );
 }

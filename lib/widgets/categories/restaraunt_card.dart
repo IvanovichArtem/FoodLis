@@ -6,17 +6,27 @@ import 'package:food_lis/widgets/kitchen_modal/restaraunt_modal.dart';
 class RestarauntCard extends StatefulWidget {
   final String docId;
   final String name;
-  final double rating;
-  final int reviewCount;
   final String imageUrl;
+  final String restarauntType;
+  final String endTime;
+  final double avgReview;
+  final int cntReviews;
+  final int timeByWalk;
+  final int avgPrice;
+  final bool isToogle;
 
   const RestarauntCard({
     super.key,
     required this.name,
-    required this.rating,
-    required this.reviewCount,
+    required this.cntReviews,
     required this.imageUrl,
     required this.docId,
+    required this.restarauntType,
+    required this.endTime,
+    required this.avgReview,
+    required this.timeByWalk,
+    required this.avgPrice,
+    required this.isToogle,
   });
 
   @override
@@ -24,16 +34,33 @@ class RestarauntCard extends StatefulWidget {
 }
 
 class _RestarauntCardState extends State<RestarauntCard> {
+  String getReviewWord(int count) {
+    if (count % 10 == 1 && count % 100 != 11) {
+      return "$count отзыв";
+    } else if (count % 10 >= 2 &&
+        count % 10 <= 4 &&
+        (count % 100 < 10 || count % 100 >= 20)) {
+      return "$count отзыва";
+    } else {
+      return "$count отзывов";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        showRestBottomSheet(
-          context,
-          restId: widget.docId,
-          name: widget.name,
-          imageUrl: widget.imageUrl,
-        );
+        showRestBottomSheet(context,
+            restId: widget.docId,
+            name: widget.name,
+            imageUrl: widget.imageUrl,
+            restarauntType: widget.restarauntType,
+            endTime: widget.endTime,
+            avgReview: widget.avgReview,
+            cntReviews: widget.cntReviews,
+            timeByWalk: 5,
+            avgPrice: widget.avgPrice,
+            isToogle: false);
       },
       child: Container(
         width: 140,
@@ -103,7 +130,7 @@ class _RestarauntCardState extends State<RestarauntCard> {
                         child: Row(
                           children: [
                             Text(
-                              widget.rating.toString().replaceAll('.', ','),
+                              widget.avgReview.toString().replaceAll('.', ','),
                               style: GoogleFonts.montserrat(
                                 color: Color.fromARGB(255, 114, 114, 114),
                                 fontWeight: FontWeight.w400,
@@ -117,7 +144,7 @@ class _RestarauntCardState extends State<RestarauntCard> {
                               size: 10,
                             ),
                             Text(
-                              "  ${widget.reviewCount} отзыва",
+                              " ${getReviewWord(widget.cntReviews)}",
                               style: GoogleFonts.montserrat(
                                 color: Color.fromARGB(255, 114, 114, 114),
                                 fontSize: 12,

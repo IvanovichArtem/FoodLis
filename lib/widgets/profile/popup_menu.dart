@@ -49,10 +49,8 @@ class _IconPopupMenuState extends State<IconPopupMenu> {
           onCanceled: () => changeIconAppearance(false),
           onSelected: (String value) {
             changeIconAppearance(false);
-            // Handle menu item selection
           },
           itemBuilder: (BuildContext context) {
-            // Используем переданный список текстов для генерации пунктов меню
             return widget.menuItems.map((String item) {
               return PopupMenuItem<String>(
                 value: item,

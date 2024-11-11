@@ -3,12 +3,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:food_lis/widgets/map/search_bar_map.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:food_lis/widgets/map/map_container.dart';
 import 'package:food_lis/widgets/modal_bottom_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:food_lis/widgets/kitchen_modal/restaraunt_modal.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:food_lis/widgets/map/list_item.dart';
+import 'package:yandex_mapkit/yandex_mapkit.dart';
+import 'package:location/location.dart';
 
 class MapScreen extends StatefulWidget {
   final int initialIndex;
@@ -23,57 +26,17 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   int _currentIndex = 0;
   List<Map<String, dynamic>> restaurantData = [];
-  final GlobalKey<_ListScreenState> _listScreenKey =
-      GlobalKey<_ListScreenState>(); // Добавляем GlobalKey
+  late YandexMapController _controller;
+  LocationData? _currentLocation;
+  List<MapObject> _mapObjects = [];
+  final double _currentZoom = 18.0; // Стартовый уровень масштаба
 
   @override
   void initState() {
     super.initState();
+    _getCurrentLocation();
+    _fetchRestaurants();
     _currentIndex = widget.initialIndex;
-    _fetchRestaurantData();
-    restaurantData = widget.data;
-  }
-
-  Future<void> _fetchRestaurantData() async {
-    try {
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('restaraunts').get();
-
-      final List<Map<String, dynamic>> data = await Future.wait(
-        querySnapshot.docs.map((doc) async {
-          final imageUrl = await _getImageUrl(doc['imageUrl']);
-          return {
-            'avgPrice': doc['avgPrice'],
-            'avgReview': doc['avgReview'],
-            'cntReviews': doc['cntReviews'],
-            'imageUrl': imageUrl,
-            'location': doc['location'],
-            'name': doc['name'],
-            'restarauntType': doc['restarauntType'],
-            'timeByCar': doc['timeByCar'],
-            'timeByWalk': doc['timeByWalk'],
-            'isToogle': false,
-            'documentId': doc.id
-          };
-        }).toList(),
-      );
-
-      setState(() {
-        restaurantData = data;
-        _listScreenKey.currentState?.updateData(restaurantData);
-      });
-    } catch (e) {
-      print('Error fetching data: $e');
-    }
-  }
-
-  Future<String> _getImageUrl(String path) async {
-    try {
-      return await FirebaseStorage.instance.ref(path).getDownloadURL();
-    } catch (e) {
-      print('Error fetching image URL: $e');
-      return '';
-    }
   }
 
   void _onButtonPressed(int index) {
@@ -82,14 +45,214 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _updateSearchResults(List<Map<String, dynamic>> results) {
+  Future<void> _getCurrentLocation() async {
+    Location location = Location();
+
+    PermissionStatus permissionGranted = await location.requestPermission();
+
+    if (permissionGranted == PermissionStatus.granted) {
+      _currentLocation = await location.getLocation();
+      _addCurrentLocationMarker();
+    } else {
+      SnackBar(
+          content: Text(
+              "Доступ к местоположению ограничен. Разрешите доступ для получения данных о ресторанах рядом."));
+    }
+  }
+
+  void _addCurrentLocationMarker() {
+    if (_currentLocation != null) {
+      final mapObject = PlacemarkMapObject(
+          mapId: MapObjectId('current_location'),
+          opacity: 1,
+          point: Point(
+            latitude: _currentLocation!.latitude!,
+            longitude: _currentLocation!.longitude!,
+          ),
+          icon: PlacemarkIcon.composite([
+            PlacemarkCompositeIconItem(
+                name: '',
+                style: PlacemarkIconStyle(
+                    scale: 0.5,
+                    image: BitmapDescriptor.fromAssetImage(
+                        'assets/icons/current_location.png')))
+          ]));
+
+      setState(() {
+        _mapObjects.add(mapObject);
+      });
+    }
+  }
+
+  Future<void> _fetchRestaurants() async {
+    final QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('restaraunts').get();
+
+    for (var doc in snapshot.docs) {
+      try {
+        final data = doc.data() as Map<String, dynamic>;
+
+        double latitude = data['location'].latitude;
+        double longitude = data['location'].longitude;
+        String name = data['name'];
+        double avgReview = data['avgReview'];
+        int avgPrice = data['avgPrice'];
+        int cntReviews = data['cntReviews'];
+        Map deliveryInfo = data['deliveryinfo'];
+        String startTime = data['startTime'];
+        String endTime = data['endTime'];
+        Map features = data['features'];
+        Map restrictions = data['restrictions'];
+        String videoUrl = data['videoUrl'];
+        String restarauntType = data['restarauntType'];
+        String imageUrlPath = data['imageUrl'];
+
+        String imageUrl =
+            await FirebaseStorage.instance.ref(imageUrlPath).getDownloadURL();
+
+        restaurantData.add({
+          'id': doc.id,
+          'name': name,
+          'avgReview': avgReview,
+          'avgPrice': avgPrice,
+          'latitude': latitude,
+          'longitude': longitude,
+          'imageUrl': imageUrl,
+          'cntReviews': cntReviews,
+          'deliveryInfo': deliveryInfo,
+          'startTime': startTime,
+          'endTime': endTime,
+          'features': features,
+          'restrictions': restrictions,
+          'videoUrl': videoUrl,
+          'restarauntType': restarauntType
+        });
+
+        // Добавляем маркер на карту
+        await _addRestaurantMarker(latitude, longitude, name,
+            avgReview.toString(), avgPrice.toString(), doc.id);
+      } catch (e) {
+        print('Ошибка при обработке документа: $e');
+        continue;
+      }
+    }
+  }
+
+  void _onCameraPositionChanged(CameraPosition cameraPosition,
+      CameraUpdateReason reason, bool isAnimated) async {
+    // Пример логики для обновления маркера
+    // final placemarkMapObject = _mapObjects
+    //     .firstWhere((el) => el.mapId == MapObjectId) as PlacemarkMapObject;
+
+    // setState(() {
+    //   _mapObjects[_mapObjects.indexOf(placemarkMapObject)] =
+    //       placemarkMapObject.copyWith(
+    //     point: cameraPosition.target,
+    //   );
+    // });
+  }
+
+  void _onPlacemarkTap(PlacemarkMapObject self, Point point) async {
+    // Выводим информацию о маркере и точке нажатия
+    print('Tapped placemark with ID: ${self.mapId}');
+    print(
+        'Coordinates of tapped placemark: ${self.point.latitude}, ${self.point.longitude}');
+    print('Tapped at point: ${point.latitude}, ${point.longitude}');
+
+    // int index = _mapObjects.indexWhere((obj) => obj.mapId == self.mapId);
+
+    // PlacemarkMapObject updatedPlacemark = PlacemarkMapObject(
+    //     mapId: self.mapId,
+    //     point: self.point,
+    //     opacity: 1,
+    //     icon: PlacemarkIcon.single(PlacemarkIconStyle(
+    //       image: BitmapDescriptor.fromAssetImage(
+    //           'assets/icons/orange_location.png'),
+    //       scale: 0.4,
+    //     )));
+    // if (index != -1) {
+    //   setState(() {
+    //     _mapObjects[index] = updatedPlacemark;
+    //   });
+    // }
+
+    // Получаем данные из Firestore
+    // try {
+    //   DocumentSnapshot document = await FirebaseFirestore.instance
+    //       .collection('restaraunts') // замените на название вашей коллекции
+    //       .doc(self.mapId.value) // используем mapId для получения документа
+    //       .get();
+
+    //   if (document.exists) {
+    //     // Получаем данные
+    //     var data = document.data() as Map<String, dynamic>;
+
+    //     String name =
+    //         data['name']; // Предполагаем, что в документе есть поле 'name'
+    //     String imagePath = data['imageUrl'];
+
+    //     String imageUrl =
+    //         await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
+
+    //     // Показываем детали ресторана
+    //     _showRestaurantDetails(self.mapId.value, name, imageUrl);
+    //   } else {
+    //     print('No restaurant found for the given ID.');
+    //   }
+    // } catch (e) {
+    //   print('Error fetching restaurant details: $e');
+    // }
+  }
+
+  // void _showRestaurantDetails(String restId, String name, String imageUrl) {
+  //   showRestBottomSheet(
+  //     context,
+  //     restId: restId,
+  //     name: name,
+  //     imageUrl: imageUrl,
+  //   );
+  // }
+
+  Future<void> _addRestaurantMarker(double latitude, double longitude,
+      String name, String rating, String price, String id) async {
+    PlacemarkMapObject mapObject = PlacemarkMapObject(
+      mapId: MapObjectId(id),
+      point: Point(latitude: latitude, longitude: longitude),
+      opacity: 1,
+      onTap: (PlacemarkMapObject self, Point point) {
+        _onPlacemarkTap(self, point);
+      },
+      icon: PlacemarkIcon.single(PlacemarkIconStyle(
+        image: BitmapDescriptor.fromAssetImage('assets/icons/location.png'),
+        scale: 0.2,
+      )),
+    );
+
     setState(() {
-      if (results.length != 0) {
-        restaurantData = results;
-        _currentIndex = 0;
-        _listScreenKey.currentState?.updateData(results);
-      } // Обновляем список ресторанов
+      _mapObjects.add(mapObject);
     });
+  }
+
+  void _onMapTap(Point point) {
+    print('Координаты нажатия: ${point.latitude}, ${point.longitude}');
+  }
+
+  void _moveToCurrentLocation() {
+    if (_currentLocation != null) {
+      _controller.moveCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: Point(
+              latitude: _currentLocation!.latitude!,
+              longitude: _currentLocation!.longitude!,
+            ),
+            zoom: 70,
+          ),
+        ),
+      );
+    } else {
+      print('Не удалось получить текущее местоположение');
+    }
   }
 
   @override
@@ -100,713 +263,333 @@ class _MapScreenState extends State<MapScreen> {
         onButtonPressed: _onButtonPressed,
         currentIndex: _currentIndex,
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          ListScreen(key: _listScreenKey, data: restaurantData),
-          Stack(
-            children: <Widget>[
-              // YandexMap должен находиться под всеми элементами
-              const Positioned.fill(
-                child: MapContainer(),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 243, 243, 243),
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(10)),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(10)),
-                      ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SearchMapBar(
-                                  onSearchResultsUpdated: _updateSearchResults,
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    showCustomBottomSheet(context);
-                                  },
-                                  child: Container(
-                                    width: 36,
-                                    height: 36,
-                                    alignment: Alignment.center,
-                                    decoration: const BoxDecoration(
-                                      color: Color.fromARGB(255, 243, 175, 79),
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(10)),
-                                    ),
-                                    child: const FaIcon(
-                                      FontAwesomeIcons.sliders,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  height: 30,
-                                  width: 105,
-                                  child: ElevatedButton(
-                                    onPressed: () => {},
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(
-                                          255, 243, 175, 79),
-                                      minimumSize: const Size(0, 30),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8),
-                                    ),
-                                    child: Text(
-                                      "Все",
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 30,
-                                  width: 105,
-                                  child: ElevatedButton(
-                                    onPressed: () => {},
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      minimumSize: const Size(0, 30),
-                                      side: const BorderSide(
-                                        width: 2,
-                                        color:
-                                            Color.fromARGB(255, 193, 193, 193),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8),
-                                    ),
-                                    child: Text(
-                                      "Избранное",
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: const Color.fromARGB(
-                                            255, 193, 193, 193),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // SizedBox(
-                                //   height: 30,
-                                //   width: 105,
-                                //   child: ElevatedButton(
-                                //     onPressed: () => {},
-                                //     style: ElevatedButton.styleFrom(
-                                //       backgroundColor: Colors.white,
-                                //       minimumSize: const Size(0, 30),
-                                //       side: const BorderSide(
-                                //         width: 2,
-                                //         color:
-                                //             Color.fromARGB(255, 193, 193, 193),
-                                //       ),
-                                //       padding: const EdgeInsets.symmetric(
-                                //           horizontal: 8),
-                                //     ),
-                                //     child: Text(
-                                //       "Челленджи",
-                                //       style: GoogleFonts.montserrat(
-                                //         fontSize: 11,
-                                //         fontWeight: FontWeight.w500,
-                                //         color: const Color.fromARGB(
-                                //             255, 193, 193, 193),
-                                //       ),
-                                //     ),
-                                //   ),
-                                // ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final Function(int) onButtonPressed;
-  final int currentIndex;
-
-  const MapAppBar({
-    super.key,
-    required this.onButtonPressed,
-    required this.currentIndex,
-  });
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: true,
-      automaticallyImplyLeading: false,
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ElevatedButton(
-            onPressed: () => onButtonPressed(0),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: currentIndex == 0
-                  ? const Color.fromARGB(255, 243, 175, 79)
-                  : Colors.white,
-            ),
-            child: SizedBox(
-              width: 110,
-              child: Center(
-                child: Text(
-                  "Список",
-                  style: GoogleFonts.montserrat(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: currentIndex == 0
-                          ? Colors.white
-                          : const Color.fromARGB(255, 243, 175, 79)),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 13),
-          ElevatedButton(
-            onPressed: () => onButtonPressed(1),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: currentIndex == 1
-                  ? const Color.fromARGB(255, 243, 175, 79)
-                  : Colors.white,
-            ),
-            child: SizedBox(
-              width: 110,
-              child: Center(
-                child: Text(
-                  "Карта",
-                  style: GoogleFonts.montserrat(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: currentIndex == 1
-                          ? Colors.white
-                          : const Color.fromARGB(255, 243, 175, 79)),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ListScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> data;
-
-  const ListScreen({super.key, required this.data});
-
-  @override
-  _ListScreenState createState() => _ListScreenState();
-}
-
-class _ListScreenState extends State<ListScreen> {
-  List<Map<String, dynamic>> currentData = [];
-  bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.data.isEmpty) {
-      // Если данные пусты, запускаем загрузку
-      _fetchRestaurantData();
-    } else {
-      currentData = widget.data;
-    }
-  }
-
-  // Функция для обновления данных
-  Future<void> _fetchRestaurantData() async {
-    setState(() {
-      isLoading = true; // Показываем индикатор загрузки
-    });
-
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print('Ошибка: пользователь не авторизован');
-        setState(() {
-          isLoading = false;
-        });
-        return;
-      }
-      final userId = user.uid;
-
-      // Загружаем данные из коллекции restaurants
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('restaraunts').get();
-
-      final List<Map<String, dynamic>> data = await Future.wait(
-        querySnapshot.docs.map((doc) async {
-          final imageUrl = await _getImageUrl(doc['imageUrl']);
-
-          // Проверяем закладку в коллекции user_rest
-          final bookmarkSnapshot = await FirebaseFirestore.instance
-              .collection('user_rest')
-              .doc('${userId}_${doc.id}')
-              .get();
-
-          // Если документ существует, используем его значение; иначе — false
-          final isBookmarked = bookmarkSnapshot.exists
-              ? bookmarkSnapshot['isBookmarked'] ?? false
-              : false;
-          print(doc);
-          return {
-            'avgPrice': doc['avgPrice'],
-            'avgReview': doc['avgReview'],
-            'cntReviews': doc['cntReviews'],
-            'imageUrl': imageUrl,
-            'location': doc['location'],
-            'name': doc['name'],
-            'restarauntType': doc['restarauntType'],
-            'timeByCar': doc['timeByCar'],
-            'timeByWalk': doc['timeByWalk'],
-            'isToogle': isBookmarked, // Устанавливаем статус закладки
-            'documentId': doc.id,
-          };
-        }).toList(),
-      );
-
-      setState(() {
-        currentData = data;
-        isLoading = false; // Скрываем индикатор загрузки
-      });
-    } catch (e) {
-      print('Ошибка при загрузке данных: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<String> _getImageUrl(String path) async {
-    try {
-      return await FirebaseStorage.instance.ref(path).getDownloadURL();
-    } catch (e) {
-      print('Ошибка при загрузке URL изображения: $e');
-      return '';
-    }
-  }
-
-  // Функция для обработки обновления данных при свайпе вниз
-  Future<void> _handleRefresh() async {
-    await _fetchRestaurantData(); // Загружаем новые данные
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh, // Функция для обновления данных
-        child: isLoading
-            ? Center(child: CircularProgressIndicator()) // Индикатор загрузки
-            : Padding(
-                padding: const EdgeInsets.fromLTRB(10, 110, 10, 10),
-                child: SingleChildScrollView(
-                  child: FutureBuilder<List<Widget>>(
-                    future: _buildItems(), // Асинхронный вызов _buildItems
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Ошибка: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(
-                            child: SvgPicture.asset(
-                                'assets/images/error_page.svg'));
-                      } else {
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: snapshot
-                              .data!, // Отображение загруженных виджетов
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ),
-      ),
-    );
-  }
-
-  Future<List<Widget>> _buildItems() async {
-    List<Widget> items = [];
-
-    // Получаем текущего пользователя и его userId
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      print('Ошибка: пользователь не авторизован');
-      return items;
-    }
-    final String userId = user.uid;
-
-    for (var item in currentData) {
-      bool isBookmarked = false;
-
-      // Пытаемся получить документ из коллекции user_rest по userId и restId
-      var bookmarkSnapshot = await FirebaseFirestore.instance
-          .collection('user_rest')
-          .doc('${userId}_${item['documentId']}')
-          .get();
-
-      // Проверяем, если документ существует, берем значение поля isBookmarked
-      if (bookmarkSnapshot.exists) {
-        isBookmarked = bookmarkSnapshot['isBookmarked'] ?? false;
-      }
-
-      // Добавляем элемент в список с актуальным значением isBookmarked
-      items.add(SearchItem(
-        imageUrl: item['imageUrl'],
-        name: item['name'],
-        restarauntType: item['restarauntType'],
-        avgReview: item['avgReview'].toDouble(),
-        cntReviews: item['cntReviews'],
-        timeByWalk: item['timeByWalk'],
-        avgPrice: item['avgPrice'],
-        isToogle: isBookmarked,
-        documentId: item['documentId'],
-      ));
-
-      // Добавляем разделитель
-      items.add(const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 15),
-        child: Divider(color: Color.fromARGB(255, 225, 225, 225)),
-      ));
-    }
-
-    return items;
-  }
-
-  void updateData(List<Map<String, dynamic>> newData) {
-    setState(() {
-      currentData = newData;
-    });
-  }
-}
-
-class SearchItem extends StatefulWidget {
-  final String imageUrl;
-  final String name;
-  final String restarauntType;
-  final double avgReview;
-  final int cntReviews;
-  final int timeByWalk;
-  final int avgPrice;
-  final bool isToogle;
-  final String
-      documentId; // Добавим идентификатор документа для обновления данных в Firebase
-
-  const SearchItem({
-    super.key,
-    required this.imageUrl,
-    required this.name,
-    required this.restarauntType,
-    required this.avgReview,
-    required this.cntReviews,
-    required this.timeByWalk,
-    required this.avgPrice,
-    required this.isToogle,
-    required this.documentId, // Добавляем новый параметр
-  });
-
-  @override
-  _SearchItemState createState() => _SearchItemState();
-}
-
-class _SearchItemState extends State<SearchItem> {
-  late bool isBookmarked;
-
-  @override
-  void initState() {
-    super.initState();
-    isBookmarked = widget.isToogle; // Инициализируем текущее состояние
-  }
-
-  // Метод для обновления состояния в Firestore и изменения иконки
-  Future<void> _toggleBookmark() async {
-    setState(() {
-      isBookmarked = !isBookmarked;
-    });
-
-    try {
-      // Получаем userId текущего пользователя (замените на нужный метод получения userId)
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print('Ошибка: пользователь не авторизован');
-        return;
-      }
-      final String userId =
-          user.uid; // Пример, замените на ваш метод получения userId
-      String urId = userId + "_" + widget.documentId;
-
-      // Создаем или обновляем документ в коллекции user_rest
-      await FirebaseFirestore.instance
-          .collection('user_rest')
-          .doc(
-              urId) // Создаем уникальный ID документа на основе userId и restId
-          .set(
-              {
-            'userId': userId,
-            'restId': widget.documentId,
-            'isBookmarked': isBookmarked,
-          },
-              SetOptions(
-                  merge:
-                      true)); // Используем merge, чтобы обновлять существующий документ
-    } catch (e) {
-      print('Ошибка обновления закладки: $e');
-    }
-  }
-
-  String getReviewWord(int count) {
-    if (count % 10 == 1 && count % 100 != 11) {
-      return "$count отзыв";
-    } else if (count % 10 >= 2 &&
-        count % 10 <= 4 &&
-        (count % 100 < 10 || count % 100 >= 20)) {
-      return "$count отзыва";
-    } else {
-      return "$count отзывов";
-    }
-  }
-
-  void _showRestaurantDetails() {
-    showRestBottomSheet(
-      context,
-      restId: widget.documentId,
-      name: widget.name,
-      imageUrl: widget.imageUrl,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
-      child: GestureDetector(
-        onTap:
-            _showRestaurantDetails, // Добавляем вызов модального окна при нажатии
-        child: Container(
-          child: Row(
+      body: RepaintBoundary(
+        child: Scaffold(
+          body: Stack(
             children: [
-              Container(
-                height: 140,
-                width: 120,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color: Colors.grey[200],
-                ),
-                clipBehavior: Clip.hardEdge,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  child: Image.network(
-                    widget.imageUrl,
-                    fit: BoxFit.cover,
-                    height: 140,
-                    width: 120,
+              IndexedStack(
+                index: _currentIndex,
+                children: [
+                  // Экран с картой YandexMap
+                  YandexMap(
+                    onCameraPositionChanged: _onCameraPositionChanged,
+                    logoAlignment: MapAlignment(
+                      horizontal: HorizontalAlignment.left,
+                      vertical: VerticalAlignment.top,
+                    ),
+                    onMapCreated: (YandexMapController controller) {
+                      _controller = controller;
+                      _controller.moveCamera(
+                        CameraUpdate.newCameraPosition(
+                          const CameraPosition(
+                            target: Point(latitude: 53.9, longitude: 27.5667),
+                            zoom: 13,
+                          ),
+                        ),
+                      );
+                    },
+                    onMapTap: _onMapTap,
+                    mapObjects: _mapObjects,
                   ),
-                ),
+                  ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(0, 150, 0, 0),
+                    itemCount: restaurantData.length,
+                    itemBuilder: (context, index) {
+                      final item = restaurantData[index];
+
+                      // Проверка на null для каждого необходимого поля
+                      if (item['imageUrl'] == null ||
+                          item['name'] == null ||
+                          item['restarauntType'] == null ||
+                          item['avgReview'] == null ||
+                          item['cntReviews'] == null ||
+                          item['avgPrice'] == null ||
+                          item['id'] == null) {
+                        return SizedBox
+                            .shrink(); // Пропустить элемент, если любое из значений null
+                      }
+
+                      // Если все значения не null, создаем ListMapItem
+                      return Column(
+                        children: [
+                          ListMapItem(
+                            imageUrl: item['imageUrl'],
+                            name: item['name'],
+                            restarauntType: item['restarauntType'],
+                            avgReview: item['avgReview'],
+                            cntReviews: item['cntReviews'],
+                            timeByWalk: 5,
+                            avgPrice: item['avgPrice'],
+                            isToogle: false,
+                            endTime: item['endTime'],
+                            documentId: item['id'],
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Divider(
+                              height: 1.0,
+                              indent: 16,
+                              endIndent: 16,
+                              color: Colors.grey),
+                          SizedBox(
+                            height: 5,
+                          ) // маленький divider
+                        ],
+                      );
+                    },
+                  )
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 7),
-                      child: SizedBox(
-                        width: 190,
-                        height: 25,
-                        child: Text(
-                          widget.name,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: GoogleFonts.montserrat(
-                              color: const Color.fromARGB(255, 114, 114, 114),
-                              fontSize: 17,
-                              fontWeight: FontWeight.w500),
+              _currentIndex == 0
+                  ? Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 160, 16, 0),
+                        child: FloatingActionButton(
+                          backgroundColor: Colors.white,
+                          onPressed: _moveToCurrentLocation,
+                          child: const FaIcon(FontAwesomeIcons.locationArrow,
+                              color: Color.fromARGB(255, 243, 175, 78)),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 45,
-                      width: 190,
-                      child: Text(widget.restarauntType,
-                          style: GoogleFonts.montserrat(
-                              color: const Color.fromARGB(255, 114, 114, 114),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400)),
-                    ),
-                    const SizedBox(
-                      height: 7,
-                    ),
-                    Row(
-                      children: [
-                        const Icon(
-                          FontAwesomeIcons.solidStar,
-                          color: Color.fromARGB(255, 229, 145, 18),
-                          size: 14,
-                        ),
-                        const SizedBox(
-                          width: 2,
-                        ),
-                        Text(
-                          widget.avgReview.toString().replaceAll('.', ','),
-                          style: GoogleFonts.montserrat(
-                              color: const Color.fromARGB(255, 114, 114, 114),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400),
-                        ),
-                        const SizedBox(
-                          width: 3,
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 0.0),
-                          child: Icon(Icons.circle,
-                              size: 4,
-                              color: Color.fromARGB(255, 114, 114, 114)),
-                        ),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 0),
-                          child: Text(
-                            getReviewWord(widget.cntReviews),
-                            style: GoogleFonts.montserrat(
-                                color: const Color.fromARGB(255, 114, 114, 114),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 7, 0, 5),
+                    )
+                  : SizedBox(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _currentIndex =
+                            (_currentIndex + 1) % 2; // переключение между 0 и 1
+                      });
+                    },
+                    child: Container(
+                      width: 328,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 244, 160, 15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            width: 70,
-                            height: 30,
-                            alignment: Alignment.center,
-                            decoration: const BoxDecoration(
-                                color: Color.fromARGB(255, 234, 234, 234),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10))),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.airport_shuttle_outlined,
-                                  color: Color.fromARGB(255, 175, 175, 175),
-                                  size: 18,
-                                ),
-                                const SizedBox(
-                                  width: 3,
-                                ),
-                                Text(
-                                  "${widget.timeByWalk} мин",
-                                  style: GoogleFonts.montserrat(
-                                      color: const Color.fromARGB(
-                                          255, 175, 175, 175),
-                                      fontSize: 10),
-                                )
-                              ],
-                            ),
+                          Icon(
+                            Icons.location_pin,
+                            color: Colors.white,
+                            size: 19,
                           ),
-                          const SizedBox(
+                          SizedBox(
                             width: 10,
                           ),
-                          Container(
-                            width: 50,
-                            height: 30,
-                            alignment: Alignment.center,
-                            decoration: const BoxDecoration(
-                                color: Color.fromARGB(255, 234, 234, 234),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10))),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "${widget.avgPrice} Br",
-                                  style: GoogleFonts.montserrat(
-                                      color: const Color.fromARGB(
-                                          255, 175, 175, 175),
-                                      fontSize: 12),
-                                )
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 38,
-                          ),
-                          GestureDetector(
-                            onTap:
-                                _toggleBookmark, // Добавляем onTap для переключения
-                            child: Icon(
-                              isBookmarked
-                                  ? Icons.bookmark
-                                  : Icons.bookmark_border_outlined,
-                              color: isBookmarked
-                                  ? const Color.fromARGB(255, 243, 145, 8)
-                                  : const Color.fromARGB(255, 135, 135, 139),
-                            ),
+                          Text(
+                            _currentIndex == 0 ? "Список" : "Карта",
+                            style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class MapAppBar extends StatefulWidget implements PreferredSizeWidget {
+  final Function(int) onButtonPressed;
+  final int currentIndex;
+
+  const MapAppBar({
+    Key? key,
+    required this.onButtonPressed,
+    required this.currentIndex,
+  }) : super(key: key);
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight * 2);
+
+  @override
+  _MapAppBarState createState() => _MapAppBarState();
+}
+
+class _MapAppBarState extends State<MapAppBar> {
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: Colors.white,
+      automaticallyImplyLeading: true,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back_ios),
+        onPressed: () => {},
+        color: const Color.fromARGB(255, 48, 48, 48),
+      ),
+      flexibleSpace: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(49, 45, 0, 0),
+            child: Row(
+              children: [
+                SearchMapBar(
+                  onSearchResultsUpdated: (p0) => {},
+                ),
+                IconButton(
+                  onPressed: () => {},
+                  icon: const Icon(Icons.share_outlined),
+                  color: const Color.fromARGB(255, 175, 175, 175),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 0, 0),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    showCustomBottomSheet(context);
+                  },
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Color.fromARGB(255, 243, 175, 79),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                    ),
+                    child: SvgPicture.asset(
+                      'assets/svg/filter.svg',
+                      width: 20,
+                      height: 20,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                GestureDetector(
+                  onTap: () => {}, // Обработчик нажатия
+                  child: Container(
+                    width: 100,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 248, 248, 248),
+                      borderRadius:
+                          BorderRadius.circular(10), // Радиус скругления
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.tag,
+                            color: Color.fromARGB(255, 48, 48, 48),
+                            size: 16,
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            "Акции",
+                            style: GoogleFonts.montserrat(
+                                color: Color.fromARGB(255, 48, 48, 48),
+                                fontWeight: FontWeight.w400),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                GestureDetector(
+                  onTap: () => {}, // Обработчик нажатия
+                  child: Container(
+                    width: 100,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 248, 248, 248),
+                      borderRadius:
+                          BorderRadius.circular(10), // Радиус скругления
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.star,
+                            color: Color.fromARGB(255, 48, 48, 48),
+                            size: 16,
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            "Лучшие",
+                            style: GoogleFonts.montserrat(
+                                color: Color.fromARGB(255, 48, 48, 48),
+                                fontWeight: FontWeight.w400),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                GestureDetector(
+                  onTap: () => {}, // Обработчик нажатия
+                  child: Container(
+                    width: 100,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 248, 248, 248),
+                      borderRadius:
+                          BorderRadius.circular(10), // Радиус скругления
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.utensils,
+                            color: Color.fromARGB(255, 48, 48, 48),
+                            size: 16,
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            "Кухня",
+                            style: GoogleFonts.montserrat(
+                                color: Color.fromARGB(255, 48, 48, 48),
+                                fontWeight: FontWeight.w400),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class KitchenItem extends StatefulWidget {
@@ -25,29 +23,16 @@ class _KitchenItemState extends State<KitchenItem> {
   @override
   void initState() {
     super.initState();
-    fetchImageUrl();
+    // Просто устанавливаем имя изображения, так как оно теперь берется из assets
+    fetchImage();
   }
 
-  Future<void> fetchImageUrl() async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('categories')
-          .where('name', isEqualTo: widget.name)
-          .limit(1)
-          .get();
-
-      if (doc.docs.isNotEmpty) {
-        final storagePath = doc.docs.first['imageUrl'];
-        final url =
-            await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
-
-        setState(() {
-          imageUrl = url;
-        });
-      }
-    } catch (e) {
-      print('Error fetching image URL: $e');
-    }
+  // Метод для поиска изображения в assets
+  void fetchImage() {
+    setState(() {
+      // Формируем путь к изображению в assets
+      imageUrl = 'assets/images/kitchens/${widget.name}.jpg';
+    });
   }
 
   @override
@@ -64,7 +49,7 @@ class _KitchenItemState extends State<KitchenItem> {
             },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.network(
+              child: Image.asset(
                 imageUrl!,
                 width: widget.width,
                 height: widget.height,

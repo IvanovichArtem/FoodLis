@@ -122,7 +122,7 @@ class _DishRatingCardState extends State<DishRatingCard> {
                             child: Row(
                               children: [
                                 Text(
-                                  "Топ ${widget.top} - ${widget.rating.toString().replaceAll('.', ',')}",
+                                  "Топ ${widget.top} - ${widget.rating.toInt().toString().replaceAll('.', ',')}",
                                   style: GoogleFonts.montserrat(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w400,

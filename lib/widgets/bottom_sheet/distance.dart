@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
@@ -27,9 +29,31 @@ class DistanceWidgetState extends State<DistanceWidget> {
             child: Text(
               "Расстояние от меня",
               style: GoogleFonts.montserrat(
-                  color: const Color.fromARGB(255, 92, 92, 92),
+                  color: const Color.fromARGB(255, 48, 48, 48),
                   fontSize: 18,
                   fontWeight: FontWeight.w700),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+            child: Row(
+              children: [
+                Text(
+                  "Мое местоположение",
+                  style: GoogleFonts.montserrat(
+                      color: const Color.fromARGB(255, 114, 114, 114),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400),
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                FaIcon(
+                  FontAwesomeIcons.mapLocationDot,
+                  color: const Color.fromARGB(255, 114, 114, 114),
+                  size: 16,
+                )
+              ],
             ),
           ),
           SfSliderTheme(

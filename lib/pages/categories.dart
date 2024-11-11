@@ -139,7 +139,7 @@ class _CategoiresState extends State<Categoires> {
               child: Text(
                 "Специально для вас",
                 style: GoogleFonts.montserrat(
-                    color: const Color.fromARGB(255, 92, 92, 92),
+                    color: const Color.fromARGB(255, 48, 48, 48),
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),

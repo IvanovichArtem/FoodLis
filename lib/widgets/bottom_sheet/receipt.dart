@@ -41,7 +41,7 @@ class ReceiptWidgetState extends State<ReceiptWidget> {
             child: Text(
               "Средний чек",
               style: GoogleFonts.montserrat(
-                  color: const Color.fromARGB(255, 92, 92, 92),
+                  color: const Color.fromARGB(255, 48, 48, 48),
                   fontSize: 18,
                   fontWeight: FontWeight.w700),
             ),

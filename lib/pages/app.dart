@@ -18,9 +18,7 @@ class _MyAppPageState extends State<MyAppPage> {
 
   final List<Widget> _pages = [
     const Categoires(),
-    const MapScreen(initialIndex: 1, data: [
-      // Данные ресторанов
-    ]),
+    const MapScreen(initialIndex: 0, data: []),
     const Chel(),
     const Profile(),
   ];

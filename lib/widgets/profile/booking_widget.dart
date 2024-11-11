@@ -70,16 +70,16 @@ class _BookingWidgetState extends State<BookingWidget> {
         children: [
           // Адрес и share
           Padding(
-            padding: const EdgeInsets.fromLTRB(17, 15, 18, 0),
+            padding: const EdgeInsets.fromLTRB(17, 0, 18, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   widget.name,
                   style: GoogleFonts.montserrat(
-                      color: const Color.fromARGB(255, 138, 138, 142),
+                      color: const Color.fromARGB(255, 114, 114, 114),
                       fontSize: 17,
-                      fontWeight: FontWeight.w400),
+                      fontWeight: FontWeight.w500),
                 ),
                 const IconPopupMenu(
                   menuItems: [
@@ -93,7 +93,7 @@ class _BookingWidgetState extends State<BookingWidget> {
           ),
           // Разделитель
           const Padding(
-            padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
             child: Divider(
               height: 1,
               color: Color.fromARGB(255, 235, 235, 235),
@@ -140,6 +140,8 @@ class _BookingWidgetState extends State<BookingWidget> {
                           width: 180,
                           child: Text(
                             widget.address,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.montserrat(
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
@@ -230,17 +232,20 @@ class _BookingWidgetState extends State<BookingWidget> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
             child: ElevatedButton(
                 onPressed: () => {},
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 243, 175, 79)),
+                style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                        Color.fromARGB(255, 244, 160, 15)),
+                    shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10))))),
                 child: SizedBox(
-                  width: double.infinity, // Займет всю доступную ширину
+                  width: double.infinity, // Займет всю доступную шир ину
                   child: Text(
                     "Построить маршрут",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.montserrat(
                         color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w500),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600),
                   ),
                 )),
           )

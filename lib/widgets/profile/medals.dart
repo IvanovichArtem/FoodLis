@@ -16,11 +16,11 @@ class Medals extends StatelessWidget {
             // Первый кружок
             _buildCircle(color: const Color(0xFFA8B400), left: 0), // Зелёный
             // Второй кружок
-            _buildCircle(color: const Color(0xFFFF8C00), left: 10), // Оранжевый
+            _buildCircle(color: const Color(0xFFFF8C00), left: 13), // Оранжевый
             // Третий кружок
-            _buildCircle(color: const Color(0xFF76C4C8), left: 20), // Голубой
+            _buildCircle(color: const Color(0xFF76C4C8), left: 26), // Голубой
             // Четвертый кружок
-            _buildCircle(color: const Color(0xFFFFD600), left: 30), // Желтый
+            _buildCircle(color: const Color(0xFFFFD600), left: 39), // Желтый
           ],
         ),
       ),

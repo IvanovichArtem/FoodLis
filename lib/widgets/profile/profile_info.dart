@@ -81,9 +81,9 @@ class _ProfileInfoState extends State<ProfileInfo> {
                 Text(
                   "$name $surname",
                   style: GoogleFonts.montserrat(
-                      color: const Color.fromARGB(255, 138, 138, 142),
+                      color: const Color.fromARGB(255, 114, 114, 114),
                       fontSize: 17,
-                      fontWeight: FontWeight.w400),
+                      fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(
                   width: 6,
@@ -92,8 +92,8 @@ class _ProfileInfoState extends State<ProfileInfo> {
                   children: [
                     Icon(
                       Icons.edit_outlined,
-                      size: 16,
-                      color: Color.fromARGB(255, 189, 189, 191),
+                      size: 20,
+                      color: Color.fromARGB(255, 114, 114, 114),
                     ),
                   ],
                 )
@@ -149,7 +149,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                      height: 66,
+                      height: 71,
                       width: 165,
                       decoration: const BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -162,14 +162,15 @@ class _ProfileInfoState extends State<ProfileInfo> {
                               children: [
                                 Text("Уровень ${widget.level}",
                                     style: GoogleFonts.montserrat(
-                                      fontSize: 14,
-                                      color:
-                                          const Color.fromARGB(255, 92, 92, 92),
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color.fromARGB(
+                                          255, 114, 114, 114),
                                     )),
                                 const Spacer(),
                                 const Icon(Icons.arrow_forward_ios_rounded,
                                     size: 14,
-                                    color: Color.fromARGB(255, 92, 92, 92)),
+                                    color: Color.fromARGB(255, 48, 48, 48)),
                               ],
                             ),
                           ),
@@ -181,7 +182,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                     width: 20,
                   ),
                   Container(
-                      height: 66,
+                      height: 71,
                       width: 165,
                       decoration: const BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -198,14 +199,15 @@ class _ProfileInfoState extends State<ProfileInfo> {
                               ),
                               Text("Баллы",
                                   style: GoogleFonts.montserrat(
-                                    fontSize: 14,
-                                    color:
-                                        const Color.fromARGB(255, 92, 92, 92),
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color.fromARGB(
+                                        255, 114, 114, 114),
                                   )),
                               const Spacer(),
                               const Icon(Icons.arrow_forward_ios_rounded,
                                   size: 14,
-                                  color: Color.fromARGB(255, 92, 92, 92)),
+                                  color: Color.fromARGB(255, 48, 48, 48)),
                               const SizedBox(
                                 width: 10,
                               )
@@ -222,7 +224,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                               widget.scores.toString(),
                               style: GoogleFonts.montserrat(
                                   fontSize: 17,
-                                  color: const Color.fromARGB(255, 92, 92, 92)),
+                                  color: const Color.fromARGB(255, 41, 41, 41)),
                             ),
                             const Spacer()
                           ])

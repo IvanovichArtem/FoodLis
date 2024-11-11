@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class KitchensFilterWidget extends StatefulWidget {
-  const KitchensFilterWidget({super.key});
+  final List<Map<String, dynamic>> kitchenData;
+  final int itemInRow;
+
+  const KitchensFilterWidget(
+      {super.key, required this.kitchenData, required this.itemInRow});
 
   @override
   State<KitchensFilterWidget> createState() => KitchensFilterWidgetState();
 }
 
 class KitchensFilterWidgetState extends State<KitchensFilterWidget> {
-  // Структура для хранения состояния каждого KitchenItem
-  List<KitchenItemState> kitchenItems = List.generate(
-    6,
-    (index) => KitchenItemState(
-      name: _getKitchenName(index),
-      imageUrl: _getKitchenImageUrl(index),
-      isSelected: false,
-    ),
-  );
+  late List<KitchenItemState> kitchenItems;
+
+  @override
+  void initState() {
+    super.initState();
+    kitchenItems = widget.kitchenData.map((data) {
+      return KitchenItemState(
+        name: data['name'],
+        imageUrl: data['imageUrl'],
+        isSelected: false,
+      );
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,23 +37,25 @@ class KitchensFilterWidgetState extends State<KitchensFilterWidget> {
           Text(
             "Кухня",
             style: GoogleFonts.montserrat(
-              color: const Color.fromARGB(255, 92, 92, 92),
+              color: const Color.fromARGB(255, 48, 48, 48),
               fontSize: 19,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 5),
           GridView.count(
-            crossAxisCount: 3,
+            crossAxisCount: widget.itemInRow,
             shrinkWrap: true,
-            crossAxisSpacing: 12,
+            crossAxisSpacing: 0,
             mainAxisSpacing: 0,
             physics: const NeverScrollableScrollPhysics(),
-            children: List.generate(6, (index) {
+            children: List.generate(widget.kitchenData.length, (index) {
               return KitchenItem(
                 isSelected: kitchenItems[index].isSelected,
                 name: kitchenItems[index].name,
                 imageUrl: kitchenItems[index].imageUrl,
+                width: widget.kitchenData[index]['width'],
+                height: widget.kitchenData[index]['height'],
                 onSelected: (isSelected) {
                   setState(() {
                     kitchenItems[index].isSelected = isSelected;
@@ -76,45 +84,6 @@ class KitchensFilterWidgetState extends State<KitchensFilterWidget> {
       }
     });
   }
-
-  // Методы для получения имени и URL для кухни
-  static String _getKitchenName(int index) {
-    switch (index) {
-      case 0:
-        return 'Азиатская';
-      case 1:
-        return 'Итальянская';
-      case 2:
-        return 'Грузинская';
-      case 3:
-        return 'Мексиканская';
-      case 4:
-        return 'Белорусская';
-      case 5:
-        return 'Вегетарианская';
-      default:
-        return '';
-    }
-  }
-
-  static String _getKitchenImageUrl(int index) {
-    switch (index) {
-      case 0:
-        return 'images/kitchens/азиатская.jpg';
-      case 1:
-        return 'images/kitchens/итальянская кухня_2.jpg';
-      case 2:
-        return 'images/kitchens/грузинская.jpg';
-      case 3:
-        return 'images/kitchens/мексиканская.jpg';
-      case 4:
-        return 'images/kitchens/белорусская.jpg';
-      case 5:
-        return 'images/kitchens/вегетарианская.jpg';
-      default:
-        return '';
-    }
-  }
 }
 
 // Модель для хранения состояния каждого элемента
@@ -130,10 +99,12 @@ class KitchenItemState {
   });
 }
 
-class KitchenItem extends StatefulWidget {
+class KitchenItem extends StatelessWidget {
   final String name;
   final String imageUrl;
   final bool isSelected;
+  final double width;
+  final double height;
   final ValueChanged<bool> onSelected;
 
   const KitchenItem({
@@ -141,39 +112,16 @@ class KitchenItem extends StatefulWidget {
     required this.name,
     required this.imageUrl,
     required this.isSelected,
+    required this.width,
+    required this.height,
     required this.onSelected,
   });
-
-  @override
-  _KitchenItemState createState() => _KitchenItemState();
-}
-
-class _KitchenItemState extends State<KitchenItem> {
-  String? _imageUrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadImage();
-  }
-
-  Future<void> _loadImage() async {
-    try {
-      String downloadUrl =
-          await FirebaseStorage.instance.ref(widget.imageUrl).getDownloadURL();
-      setState(() {
-        _imageUrl = downloadUrl;
-      });
-    } catch (e) {
-      print('Ошибка загрузки изображения: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        widget.onSelected(!widget.isSelected);
+        onSelected(!isSelected);
       },
       child: Column(
         children: [
@@ -181,7 +129,7 @@ class _KitchenItemState extends State<KitchenItem> {
             duration: const Duration(milliseconds: 300),
             decoration: BoxDecoration(
               border: Border.all(
-                color: widget.isSelected
+                color: isSelected
                     ? const Color.fromARGB(255, 243, 175, 79)
                     : Colors.transparent,
                 width: 3.0,
@@ -190,36 +138,27 @@ class _KitchenItemState extends State<KitchenItem> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: _imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: _imageUrl!,
-                      width: 120,
-                      placeholder: (context, url) =>
-                          const CircularProgressIndicator(),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                    )
-                  : const SizedBox(
-                      height: 120,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
+              child: Image.asset(
+                imageUrl,
+                width: width,
+                height: height,
+              ),
             ),
           ),
           SizedBox(
             width: 110,
             child: Text(
-              widget.name,
+              name,
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               style: GoogleFonts.montserrat(
-                color: const Color.fromARGB(255, 92, 92, 92),
+                color: const Color.fromARGB(255, 48, 48, 48),
                 fontSize: 11,
                 fontWeight: FontWeight.w400,
               ),
             ),
           ),
-          const SizedBox(height: 2),
         ],
       ),
     );
