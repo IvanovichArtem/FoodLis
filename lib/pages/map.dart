@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:food_lis/widgets/map/search_bar_map.dart';
@@ -12,6 +14,8 @@ import 'dart:ui' as ui;
 import 'package:food_lis/widgets/map/list_item.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:location/location.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:math';
 
 class MapScreen extends StatefulWidget {
   final int initialIndex;
@@ -25,24 +29,22 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   int _currentIndex = 0;
-  List<Map<String, dynamic>> restaurantData = [];
+  List<Map<String, dynamic>> restarauntData = [];
   late YandexMapController _controller;
   LocationData? _currentLocation;
   List<MapObject> _mapObjects = [];
-  final double _currentZoom = 18.0; // Стартовый уровень масштаба
+  String? _activeMarkerId = "";
+  Map<String, dynamic> floatRest = {};
+  Set<String> _searchResults = {};
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
-    _fetchRestaurants();
+    if (widget.data.isEmpty) {
+      _fetchRestaurants();
+    }
     _currentIndex = widget.initialIndex;
-  }
-
-  void _onButtonPressed(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
   }
 
   Future<void> _getCurrentLocation() async {
@@ -58,6 +60,42 @@ class _MapScreenState extends State<MapScreen> {
           content: Text(
               "Доступ к местоположению ограничен. Разрешите доступ для получения данных о ресторанах рядом."));
     }
+  }
+
+  Future<String> _getTravelTime(
+      double startLat, double startLng, double endLat, double endLng) async {
+    double _degreesToRadians(double degrees) {
+      return degrees * pi / 180;
+    }
+
+    const double avgSpeedKmPerHour = 35; // Средняя скорость в городе (км/ч)
+
+    // Функция для вычисления расстояния между двумя точками (в километрах) используя Haversine формулу
+    double _calculateDistance(
+        double lat1, double lon1, double lat2, double lon2) {
+      const double earthRadiusKm = 6371;
+
+      final double dLat = _degreesToRadians(lat2 - lat1);
+      final double dLon = _degreesToRadians(lon2 - lon1);
+
+      final double a = sin(dLat / 2) * sin(dLat / 2) +
+          cos(_degreesToRadians(lat1)) *
+              cos(_degreesToRadians(lat2)) *
+              sin(dLon / 2) *
+              sin(dLon / 2);
+      final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+      return earthRadiusKm * c;
+    }
+
+    // Вычисляем расстояние между начальной и конечной точкой
+    final double distanceKm =
+        _calculateDistance(startLat, startLng, endLat, endLng);
+
+    // Рассчитываем примерное время в минутах
+    final int travelTimeMinutes = (distanceKm / avgSpeedKmPerHour * 60).round();
+
+    return "$travelTimeMinutes мин";
   }
 
   void _addCurrentLocationMarker() {
@@ -106,11 +144,20 @@ class _MapScreenState extends State<MapScreen> {
         String videoUrl = data['videoUrl'];
         String restarauntType = data['restarauntType'];
         String imageUrlPath = data['imageUrl'];
+        final user = FirebaseAuth.instance.currentUser;
 
         String imageUrl =
             await FirebaseStorage.instance.ref(imageUrlPath).getDownloadURL();
+        final userDocId = '${user?.uid}_${doc.id}';
 
-        restaurantData.add({
+        // Streamlined isToogle retrieval
+        final isToogle = (await FirebaseFirestore.instance
+                    .collection('user_rest')
+                    .doc(userDocId)
+                    .get())
+                .data()?['isBookmarked'] ??
+            false;
+        restarauntData.add({
           'id': doc.id,
           'name': name,
           'avgReview': avgReview,
@@ -125,7 +172,9 @@ class _MapScreenState extends State<MapScreen> {
           'features': features,
           'restrictions': restrictions,
           'videoUrl': videoUrl,
-          'restarauntType': restarauntType
+          'restarauntType': restarauntType,
+          'isToogle': isToogle,
+          'isVisible': true
         });
 
         // Добавляем маркер на карту
@@ -135,6 +184,54 @@ class _MapScreenState extends State<MapScreen> {
         print('Ошибка при обработке документа: $e');
         continue;
       }
+    }
+  }
+
+  void _showAll({bool needState = true}) {
+    if (needState) {
+      setState(() {
+        for (var rest in restarauntData) {
+          rest['isVisible'] = true;
+        }
+      });
+    } else {
+      for (var rest in restarauntData) {
+        rest['isVisible'] = true;
+      }
+    }
+    _searchResults = {};
+  }
+
+  void _updateSearchResults(List<Map<String, dynamic>> searchResults) {
+    _showAll(needState: false);
+    if (searchResults.isEmpty) {
+      // Отобразить SnackBar, если список пуст
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Результаты поиска не найдены.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } else {
+      for (var item in searchResults) {
+        _searchResults.add(item['id']);
+      }
+      // Если результаты есть, обновляем видимость
+      setState(() {
+        for (var restaurant in restarauntData) {
+          // Ищем, есть ли ресторан с таким же 'id' в searchResults
+          var isMatchFound =
+              searchResults.any((result) => result['id'] == restaurant['id']);
+
+          // Если ресторан найден в результатах поиска, ставим isVisible в true, иначе — в false
+          if (isMatchFound) {
+            restaurant['isVisible'] = true;
+          } else {
+            restaurant['isVisible'] = false;
+          }
+        }
+        _currentIndex = 1;
+      });
     }
   }
 
@@ -152,66 +249,105 @@ class _MapScreenState extends State<MapScreen> {
     // });
   }
 
+  void _updateMarkerIcon(
+      String markerId, String imagePath, double scale) async {
+    // Находим индекс маркера по ID
+    final index = _mapObjects.indexWhere(
+      (marker) => marker.mapId.value == markerId,
+    );
+
+    if (index != -1) {
+      // Приводим маркер к типу PlacemarkMapObject, чтобы получить доступ к свойству point
+      final originalMarker = _mapObjects[index] as PlacemarkMapObject;
+
+      // Создаём новую иконку
+      final updatedIconStyle = PlacemarkIcon.single(
+        PlacemarkIconStyle(
+          image: BitmapDescriptor.fromAssetImage(imagePath),
+          scale: scale,
+        ),
+      );
+
+      // Создаём новый маркер с обновлённой иконкой
+      final updatedMarker = PlacemarkMapObject(
+        mapId: originalMarker.mapId,
+        point: originalMarker.point,
+        opacity: originalMarker.opacity,
+        onTap: originalMarker.onTap,
+        icon: updatedIconStyle,
+      );
+
+      // Обновляем список маркеров
+      setState(() {
+        _mapObjects[index] = updatedMarker;
+        _activeMarkerId = markerId;
+      });
+    }
+  }
+
   void _onPlacemarkTap(PlacemarkMapObject self, Point point) async {
-    // Выводим информацию о маркере и точке нажатия
+    setState(() {
+      // Проверяем, является ли текущий маркер активным
+      if (_activeMarkerId == self.mapId.value) {
+        _updateMarkerIcon(_activeMarkerId!, 'assets/icons/location.png', 0.2);
+        _activeMarkerId = "";
+        floatRest = {};
+      } else {
+        if (_activeMarkerId != null) {
+          _updateMarkerIcon(_activeMarkerId!, 'assets/icons/location.png', 0.2);
+        }
+        _activeMarkerId = self.mapId.value;
+        _updateMarkerIcon(
+            _activeMarkerId!, 'assets/icons/orange_location.png', 0.4);
+
+        var restaurant = restarauntData.firstWhere(
+          (restaurant) => restaurant['id'] == _activeMarkerId,
+          orElse: () => {},
+        );
+
+        if (restaurant != {}) {
+          floatRest = {
+            'id': restaurant['id'],
+            'name': restaurant['name'],
+            'avgReview': restaurant['avgReview'],
+            'avgPrice': restaurant['avgPrice'],
+            'latitude': restaurant['latitude'],
+            'longitude': restaurant['longitude'],
+            'imageUrl': restaurant['imageUrl'],
+            'cntReviews': restaurant['cntReviews'],
+            'deliveryInfo': restaurant['deliveryInfo'],
+            'startTime': restaurant['startTime'],
+            'endTime': restaurant['endTime'],
+            'features': restaurant['features'],
+            'restrictions': restaurant['restrictions'],
+            'videoUrl': restaurant['videoUrl'],
+            'restarauntType': restaurant['restarauntType'],
+            'isToogle': restaurant['isToogle'],
+          };
+        } else {
+          floatRest = {};
+        }
+      }
+    });
+
+    if (_currentLocation != null) {
+      final travelTime = await _getTravelTime(
+        _currentLocation!.latitude!,
+        _currentLocation!.longitude!,
+        point.latitude,
+        point.longitude,
+      );
+
+      setState(() {
+        floatRest['travelTime'] = travelTime; // Сохранение времени в пути
+      });
+    }
+
     print('Tapped placemark with ID: ${self.mapId}');
     print(
         'Coordinates of tapped placemark: ${self.point.latitude}, ${self.point.longitude}');
     print('Tapped at point: ${point.latitude}, ${point.longitude}');
-
-    // int index = _mapObjects.indexWhere((obj) => obj.mapId == self.mapId);
-
-    // PlacemarkMapObject updatedPlacemark = PlacemarkMapObject(
-    //     mapId: self.mapId,
-    //     point: self.point,
-    //     opacity: 1,
-    //     icon: PlacemarkIcon.single(PlacemarkIconStyle(
-    //       image: BitmapDescriptor.fromAssetImage(
-    //           'assets/icons/orange_location.png'),
-    //       scale: 0.4,
-    //     )));
-    // if (index != -1) {
-    //   setState(() {
-    //     _mapObjects[index] = updatedPlacemark;
-    //   });
-    // }
-
-    // Получаем данные из Firestore
-    // try {
-    //   DocumentSnapshot document = await FirebaseFirestore.instance
-    //       .collection('restaraunts') // замените на название вашей коллекции
-    //       .doc(self.mapId.value) // используем mapId для получения документа
-    //       .get();
-
-    //   if (document.exists) {
-    //     // Получаем данные
-    //     var data = document.data() as Map<String, dynamic>;
-
-    //     String name =
-    //         data['name']; // Предполагаем, что в документе есть поле 'name'
-    //     String imagePath = data['imageUrl'];
-
-    //     String imageUrl =
-    //         await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
-
-    //     // Показываем детали ресторана
-    //     _showRestaurantDetails(self.mapId.value, name, imageUrl);
-    //   } else {
-    //     print('No restaurant found for the given ID.');
-    //   }
-    // } catch (e) {
-    //   print('Error fetching restaurant details: $e');
-    // }
   }
-
-  // void _showRestaurantDetails(String restId, String name, String imageUrl) {
-  //   showRestBottomSheet(
-  //     context,
-  //     restId: restId,
-  //     name: name,
-  //     imageUrl: imageUrl,
-  //   );
-  // }
 
   Future<void> _addRestaurantMarker(double latitude, double longitude,
       String name, String rating, String price, String id) async {
@@ -234,7 +370,17 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _onMapTap(Point point) {
-    print('Координаты нажатия: ${point.latitude}, ${point.longitude}');
+    // print('Координаты нажатия: ${point.latitude}, ${point.longitude}');
+
+    // if (_activeMarkerId != '') {
+    //   // Деактивируем активный маркер, сбрасывая его иконку
+    //   _updateMarkerIcon(_activeMarkerId!, 'assets/icons/location.png', 0.2);
+
+    //   // Очищаем идентификатор активного маркера
+    //   setState(() {
+    //     _activeMarkerId = null;
+    //   });
+    // }
   }
 
   void _moveToCurrentLocation() {
@@ -260,8 +406,11 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: MapAppBar(
-        onButtonPressed: _onButtonPressed,
+        onButtonPressed: () => {
+          _showAll(needState: true),
+        },
         currentIndex: _currentIndex,
+        searchCallback: _updateSearchResults,
       ),
       body: RepaintBoundary(
         child: Scaffold(
@@ -291,53 +440,59 @@ class _MapScreenState extends State<MapScreen> {
                     onMapTap: _onMapTap,
                     mapObjects: _mapObjects,
                   ),
-                  ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(0, 150, 0, 0),
-                    itemCount: restaurantData.length,
-                    itemBuilder: (context, index) {
-                      final item = restaurantData[index];
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 15, 0, 60),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(0, 150, 0, 0),
+                      itemCount: restarauntData.length,
+                      itemBuilder: (context, index) {
+                        final item = restarauntData[index];
 
-                      // Проверка на null для каждого необходимого поля
-                      if (item['imageUrl'] == null ||
-                          item['name'] == null ||
-                          item['restarauntType'] == null ||
-                          item['avgReview'] == null ||
-                          item['cntReviews'] == null ||
-                          item['avgPrice'] == null ||
-                          item['id'] == null) {
-                        return SizedBox
-                            .shrink(); // Пропустить элемент, если любое из значений null
-                      }
+                        // Проверка на null для каждого необходимого поля
+                        if (item['imageUrl'] == null ||
+                            item['name'] == null ||
+                            item['restarauntType'] == null ||
+                            item['avgReview'] == null ||
+                            item['cntReviews'] == null ||
+                            item['avgPrice'] == null ||
+                            item['id'] == null ||
+                            !item['isVisible'] ||
+                            (_searchResults.isNotEmpty &&
+                                !_searchResults.contains(item['id']))) {
+                          return SizedBox
+                              .shrink(); // Пропустить элемент, если любое из значений null
+                        }
 
-                      // Если все значения не null, создаем ListMapItem
-                      return Column(
-                        children: [
-                          ListMapItem(
-                            imageUrl: item['imageUrl'],
-                            name: item['name'],
-                            restarauntType: item['restarauntType'],
-                            avgReview: item['avgReview'],
-                            cntReviews: item['cntReviews'],
-                            timeByWalk: 5,
-                            avgPrice: item['avgPrice'],
-                            isToogle: false,
-                            endTime: item['endTime'],
-                            documentId: item['id'],
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Divider(
-                              height: 1.0,
-                              indent: 16,
-                              endIndent: 16,
-                              color: Colors.grey),
-                          SizedBox(
-                            height: 5,
-                          ) // маленький divider
-                        ],
-                      );
-                    },
+                        // Если все значения не null, создаем ListMapItem
+                        return Column(
+                          children: [
+                            ListMapItem(
+                              imageUrl: item['imageUrl'],
+                              name: item['name'],
+                              restarauntType: item['restarauntType'],
+                              avgReview: item['avgReview'],
+                              cntReviews: item['cntReviews'],
+                              timeByWalk: 5,
+                              avgPrice: item['avgPrice'],
+                              isToogle: item['isToogle'],
+                              endTime: item['endTime'],
+                              documentId: item['id'],
+                            ),
+                            SizedBox(
+                              height: 6,
+                            ),
+                            Divider(
+                                height: 1.0,
+                                indent: 16,
+                                endIndent: 16,
+                                color: Colors.grey),
+                            SizedBox(
+                              height: 8,
+                            ) // маленький divider
+                          ],
+                        );
+                      },
+                    ),
                   )
                 ],
               ),
@@ -351,6 +506,168 @@ class _MapScreenState extends State<MapScreen> {
                           onPressed: _moveToCurrentLocation,
                           child: const FaIcon(FontAwesomeIcons.locationArrow,
                               color: Color.fromARGB(255, 243, 175, 78)),
+                        ),
+                      ),
+                    )
+                  : SizedBox(),
+              ((_activeMarkerId != "") & (_currentIndex != 1))
+                  ? Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 65),
+                        child: GestureDetector(
+                          onTap: () => {
+                            //аава
+                            showRestBottomSheet(context,
+                                restId: floatRest['id'],
+                                name: floatRest['name'],
+                                imageUrl: floatRest['imageUrl'],
+                                restarauntType: floatRest['restarauntType'],
+                                timeByWalk: 5,
+                                endTime: floatRest['endTime'],
+                                avgPrice: floatRest['avgPrice'],
+                                avgReview: floatRest['avgReview'],
+                                cntReviews: floatRest['cntReviews'],
+                                isToogle: floatRest['isToogle'])
+                          },
+                          child: Container(
+                            width: 313,
+                            height: 120,
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      floatRest['imageUrl'],
+                                      width: 120,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              9, 8, 0, 0),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 130,
+                                                child: Text(
+                                                  floatRest['name']
+                                                      .toString()
+                                                      .trim(),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: GoogleFonts.montserrat(
+                                                      color: Color.fromARGB(
+                                                          255, 48, 48, 48),
+                                                      fontSize: 17,
+                                                      fontWeight:
+                                                          FontWeight.w500),
+                                                ),
+                                              ),
+                                              Text(
+                                                  floatRest['avgReview']
+                                                      .toString()
+                                                      .trim(),
+                                                  style: GoogleFonts.montserrat(
+                                                      color: Color.fromARGB(
+                                                          255, 48, 48, 48),
+                                                      fontSize: 17,
+                                                      fontWeight:
+                                                          FontWeight.w500))
+                                            ],
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      11, 0, 0, 0),
+                                              child: Container(
+                                                width: 120,
+                                                height: 30,
+                                                child: Text(
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  floatRest['restarauntType']
+                                                      .toString()
+                                                      .trim(),
+                                                  textAlign: TextAlign.left,
+                                                  style: GoogleFonts.montserrat(
+                                                      color: Color.fromARGB(
+                                                          255, 114, 114, 114),
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      fontSize: 14),
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      12, 0, 0, 7),
+                                              child: Text(
+                                                "(${floatRest['cntReviews'].toString()})"
+                                                    .trim(),
+                                                style: GoogleFonts.montserrat(
+                                                    color: Color.fromARGB(
+                                                        255, 114, 114, 114),
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 12),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              0, 15, 0, 0),
+                                          child: Row(
+                                            children: [
+                                              const FaIcon(
+                                                FontAwesomeIcons.car,
+                                                size: 14,
+                                                color: Color.fromARGB(
+                                                    255, 193, 193, 193),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                floatRest['travelTime'] ??
+                                                    "5 мин",
+                                                style: GoogleFonts.montserrat(
+                                                  color: const Color.fromARGB(
+                                                      255, 193, 193, 193),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 20),
+                                              Text(
+                                                "${floatRest['avgPrice']} Br",
+                                                style: GoogleFonts.montserrat(
+                                                  color: const Color.fromARGB(
+                                                      255, 193, 193, 193),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     )
@@ -407,14 +724,16 @@ class _MapScreenState extends State<MapScreen> {
 }
 
 class MapAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final Function(int) onButtonPressed;
+  final onButtonPressed;
   final int currentIndex;
+  final Function(List<Map<String, dynamic>>) searchCallback;
 
   const MapAppBar({
-    Key? key,
+    super.key,
     required this.onButtonPressed,
     required this.currentIndex,
-  }) : super(key: key);
+    required this.searchCallback,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight * 2);
@@ -432,7 +751,7 @@ class _MapAppBarState extends State<MapAppBar> {
       automaticallyImplyLeading: true,
       leading: IconButton(
         icon: Icon(Icons.arrow_back_ios),
-        onPressed: () => {},
+        onPressed: () => {widget.onButtonPressed()},
         color: const Color.fromARGB(255, 48, 48, 48),
       ),
       flexibleSpace: Column(
@@ -442,7 +761,7 @@ class _MapAppBarState extends State<MapAppBar> {
             child: Row(
               children: [
                 SearchMapBar(
-                  onSearchResultsUpdated: (p0) => {},
+                  onSearchResultsUpdated: widget.searchCallback,
                 ),
                 IconButton(
                   onPressed: () => {},

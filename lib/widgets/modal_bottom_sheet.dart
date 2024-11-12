@@ -3,10 +3,10 @@ import 'package:food_lis/widgets/bottom_sheet/receipt.dart';
 import 'package:food_lis/widgets/bottom_sheet/kitchens.dart';
 import 'package:food_lis/widgets/bottom_sheet/restaraunt_type.dart';
 import 'package:food_lis/widgets/bottom_sheet/distance.dart';
-import 'package:food_lis/widgets/bottom_sheet/delivery_info.dart';
-import 'package:food_lis/widgets/bottom_sheet/available_seats.dart';
-import 'package:food_lis/widgets/bottom_sheet/dinner.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:math';
+import 'package:location/location.dart';
 
 void showCustomBottomSheet(BuildContext context) {
   showModalBottomSheet(
@@ -25,22 +25,25 @@ class _BottomSheetContent extends StatefulWidget {
 }
 
 class __BottomSheetContentState extends State<_BottomSheetContent> {
-  // final GlobalKey<ReceiptWidgetState> receiptKey =
-  //     GlobalKey<ReceiptWidgetState>();
-  // final GlobalKey<KitchensFilterWidgetState> kitchensKey =
-  //     GlobalKey<KitchensFilterWidgetState>();
-  // final GlobalKey<MultipleToogleWidgetState> restaurantTypeKey =
-  //     GlobalKey<MultipleToogleWidgetState>();
-  // final GlobalKey<DistanceWidgetState> distanceKey =
-  //     GlobalKey<DistanceWidgetState>();
-  // final GlobalKey<DeliveryInfoState> deliveryKey =
-  //     GlobalKey<DeliveryInfoState>();
-  // final GlobalKey<AvailableSeatsInfoState> availableSeatsKey =
-  //     GlobalKey<AvailableSeatsInfoState>();
-  // final GlobalKey<DinnerInfoState> dinnerKey = GlobalKey<DinnerInfoState>();
+  final GlobalKey<ReceiptWidgetState> receiptKey =
+      GlobalKey<ReceiptWidgetState>();
+  final GlobalKey<KitchensFilterWidgetState> kitchensKey =
+      GlobalKey<KitchensFilterWidgetState>();
+  final GlobalKey<MultipleToogleWidgetState> restaurantTypeKey =
+      GlobalKey<MultipleToogleWidgetState>();
+  final GlobalKey<MultipleToogleWidgetRatingState> ratingKey =
+      GlobalKey<MultipleToogleWidgetRatingState>();
+  final GlobalKey<DistanceWidgetState> distanceKey =
+      GlobalKey<DistanceWidgetState>();
+  final GlobalKey<KitchensFilterWidget2State> dayTimeKey =
+      GlobalKey<KitchensFilterWidget2State>();
+  final GlobalKey<MultipleToogleWidgetWithIconsState> featuresKey =
+      GlobalKey<MultipleToogleWidgetWithIconsState>();
+  final GlobalKey<MultipleToogleWidgetRestrictionsState> restrictionsKey =
+      GlobalKey<MultipleToogleWidgetRestrictionsState>();
 
   double receiptStartValue = 10.0;
-  double receiptEndValue = 20.0;
+  double receiptEndValue = 50.0;
   bool isYandexSelected = false;
   bool isDeliverySelected = false;
   bool isRestaurantSelected = false;
@@ -55,7 +58,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
   void resetStates() {
     setState(() {
       receiptStartValue = 10.0;
-      receiptEndValue = 20.0;
+      receiptEndValue = 50.0;
       isYandexSelected = false;
       isDeliverySelected = false;
       isRestaurantSelected = false;
@@ -64,30 +67,181 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
     });
 
     // // Reset each widget via its key
-    // receiptKey.currentState?.reset(receiptStartValue, receiptEndValue);
-    // kitchensKey.currentState?.reset();
-    // restaurantTypeKey.currentState?.reset();
-    // distanceKey.currentState?.reset();
-    // deliveryKey.currentState?.reset();
-    // availableSeatsKey.currentState?.reset();
-    // dinnerKey.currentState?.reset();
+    receiptKey.currentState?.reset(receiptStartValue, receiptEndValue);
+    kitchensKey.currentState?.reset();
+    restaurantTypeKey.currentState?.reset();
+    ratingKey.currentState?.reset();
+    distanceKey.currentState?.reset();
+    dayTimeKey.currentState?.reset();
+    featuresKey.currentState?.reset();
+    ratingKey.currentState?.reset();
+    restrictionsKey.currentState?.reset();
   }
 
-  void filter() {
+  Future<List<Map<String, dynamic>>> fetchRestaurantsFromFirebase() async {
+    // Получение текущего местоположения пользователя с использованием пакета location
+    Location location = Location();
+    LocationData userLocation = await location.getLocation();
+
+    double userLatitude = userLocation.latitude ?? 0.0;
+    double userLongitude = userLocation.longitude ?? 0.0;
+
+    // Получаем данные о ресторанах из Firebase
+    var snapshot =
+        await FirebaseFirestore.instance.collection('restaraunts').get();
+
+    // Преобразуем документы в List<Map<String, dynamic>> и добавляем расстояние
+    List<Map<String, dynamic>> restaurantsWithDistance =
+        snapshot.docs.map((doc) {
+      Map<String, dynamic> restaurantData = doc.data() as Map<String, dynamic>;
+
+      // Получаем координаты ресторана
+      double restaurantLatitude = restaurantData['location'].latitude;
+      double restaurantLongitude = restaurantData['location'].longitude;
+
+      // Вычисляем расстояние между точками (в километрах)
+      double distanceInKm = _calculateDistance(
+          userLatitude, userLongitude, restaurantLatitude, restaurantLongitude);
+
+      // Добавляем расстояние к данным ресторана
+      restaurantData['distance'] = distanceInKm;
+
+      return restaurantData;
+    }).toList();
+
+    return restaurantsWithDistance;
+  }
+
+// Функция для вычисления расстояния между двумя точками по формуле Haversine
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371; // Радиус Земли в километрах
+
+    double lat1Rad = _degreesToRadians(lat1);
+    double lon1Rad = _degreesToRadians(lon1);
+    double lat2Rad = _degreesToRadians(lat2);
+    double lon2Rad = _degreesToRadians(lon2);
+
+    double dlat = lat2Rad - lat1Rad;
+    double dlon = lon2Rad - lon1Rad;
+
+    double a = sin(dlat / 2) * sin(dlat / 2) +
+        cos(lat1Rad) * cos(lat2Rad) * sin(dlon / 2) * sin(dlon / 2);
+
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c; // Расстояние в километрах
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
+  }
+
+  Future<void> filter() async {
     // Получаем состояние всех виджетов в одном Map
     Map<String, dynamic> currentState = {
-      // 'Receipt Widget State': receiptKey.currentState?.getCurrentState(),
-      // 'Kitchens Filter State': kitchensKey.currentState?.getCurrentState(),
-      // 'Restaurant Type State':
-      //     restaurantTypeKey.currentState?.getCurrentState(),
-      // 'Distance Widget State': distanceKey.currentState?.getCurrentState(),
-      // 'Delivery Info State': deliveryKey.currentState?.getCurrentState(),
-      // 'Available Seats Info State':
-      //     availableSeatsKey.currentState?.getCurrentState(),
-      // 'Dinner Info State': dinnerKey.currentState?.getCurrentState(),
+      'receipt': receiptKey.currentState?.getCurrentState(),
+      'kitchens': kitchensKey.currentState?.getCurrentState(),
+      'restaraunt': restaurantTypeKey.currentState?.getCurrentState(),
+      'rating': ratingKey.currentState?.getCurrentState(),
+      'distance': distanceKey.currentState?.getCurrentState(),
+      'dayTime': dayTimeKey.currentState?.getCurrentState(),
+      'features': featuresKey.currentState?.getCurrentState(),
+      'restrictions': restrictionsKey.currentState?.getCurrentState(),
     };
 
-    // Выводим все данные в консоль
+    List<String> selectedKitchens = currentState['kitchens'] ?? [];
+    List<String> selectedRestaurants = currentState['restaraunt']
+        .keys
+        .where((key) => currentState['restaraunt'][key] == true)
+        .toList();
+
+    List<Map<String, dynamic>> restaurants =
+        await fetchRestaurantsFromFirebase();
+    print('');
+    restaurants = restaurants.where((restaurant) {
+      double avgPrice = restaurant['avgPrice']?.toDouble() ?? 0.0;
+      return avgPrice >= currentState['receipt'][0] &&
+          avgPrice <= currentState['receipt'][1];
+    }).toList();
+
+    if (selectedKitchens.isNotEmpty) {
+      restaurants = restaurants.where((restaurant) {
+        String kitchenType = restaurant['kitchenType'] ?? '';
+        // Проверяем, что kitchenType ресторана есть в selectedKitchens
+        return selectedKitchens.contains(kitchenType);
+      }).toList();
+    }
+
+    if (selectedRestaurants.isNotEmpty) {
+      restaurants = restaurants.where((restaurant) {
+        String restaurantType = restaurant['restarauntType'] ?? '';
+        // Проверяем, что restaurantType ресторана есть в selectedRestaurants с значением true
+        return selectedRestaurants.contains(restaurantType);
+      }).toList();
+    }
+
+    List<String> selectedRatings = currentState['rating']
+        .keys
+        .where((key) => currentState['rating'][key] == true)
+        .toList();
+
+    if (selectedRatings.isNotEmpty) {
+      restaurants = restaurants.where((restaurant) {
+        double avgReview = restaurant['avgReview']?.toDouble() ?? 0.0;
+
+        bool matchRating = false;
+
+        if (selectedRatings.contains('Превосходно') && avgReview > 4.5) {
+          matchRating = true;
+        } else if (selectedRatings.contains('Отлично') &&
+            avgReview > 4.0 &&
+            avgReview <= 4.5) {
+          matchRating = true;
+        } else if (selectedRatings.contains('Хорошо') &&
+            avgReview > 3.0 &&
+            avgReview <= 4.0) {
+          matchRating = true;
+        }
+
+        return matchRating;
+      }).toList();
+    }
+
+    restaurants = restaurants.where((restaurant) {
+      double restaurantDistance =
+          restaurant['distance']?.toDouble() ?? double.infinity;
+      return restaurantDistance < currentState['distance'];
+    }).toList();
+
+    List<String> requiredFeatures = currentState['features']
+        .keys
+        .where((key) => currentState['features'][key] == true)
+        .toList();
+
+    if (requiredFeatures.isNotEmpty) {
+      restaurants = restaurants.where((restaurant) {
+        Map<String, dynamic> restaurantFeatures = restaurant['features'] ?? {};
+        // Проверяем, что все ключи из requiredFeatures равны true в restaurantFeatures
+        return requiredFeatures
+            .every((feature) => restaurantFeatures[feature] == true);
+      }).toList();
+    }
+
+    List<String> restrictions = currentState['restrictions']
+        .keys
+        .where((key) => currentState['restrictions'][key] == true)
+        .toList();
+
+    if (restrictions.isNotEmpty) {
+      restaurants = restaurants.where((restaurant) {
+        Map<String, dynamic> restaurantFeatures =
+            restaurant['restrictions'] ?? {};
+        return restrictions
+            .every((feature) => restaurantFeatures[feature] == true);
+      }).toList();
+    }
+
     print("Current States: $currentState");
   }
 
@@ -122,7 +276,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ReceiptWidget(
-                    // key: receiptKey,
+                    key: receiptKey,
                     startValue: receiptStartValue,
                     endValue: receiptEndValue,
                   ),
@@ -130,6 +284,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                     height: 14,
                   ),
                   KitchensFilterWidget(
+                    key: kitchensKey,
                     itemInRow: 3,
                     kitchenData: [
                       {
@@ -190,7 +345,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                     ],
                   ),
                   MultipleToogleWidget(
-                    // key: restaurantTypeKey,
+                    key: restaurantTypeKey,
                     text: "Тип заведения",
                     buttonsData: [
                       {'name': 'Ресторан', 'isSelected': false},
@@ -211,8 +366,8 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                   SizedBox(
                     height: 14,
                   ),
-                  MultipleToogleWidget(
-                    // key: restaurantTypeKey,
+                  MultipleToogleWidgetRating(
+                    key: ratingKey,
                     text: "Рейтинг",
                     buttonsData: [
                       {'name': 'Хорошо', 'isSelected': false},
@@ -223,13 +378,12 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                   SizedBox(
                     height: 14,
                   ),
-                  DistanceWidget(
-                      // key: distanceKey
-                      ),
+                  DistanceWidget(key: distanceKey),
                   SizedBox(
                     height: 14,
                   ),
-                  KitchensFilterWidget(
+                  KitchensFilterWidget2(
+                    key: dayTimeKey,
                     itemInRow: 4,
                     kitchenData: [
                       {
@@ -262,7 +416,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                     height: 30,
                   ),
                   MultipleToogleWidgetWithIcons(
-                    // key: restaurantTypeKey,
+                    key: featuresKey,
                     text: "Особенности",
                     buttonsData: [
                       {
@@ -323,8 +477,8 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  MultipleToogleWidget(
-                    // key: restaurantTypeKey,
+                  MultipleToogleWidgetRestrictions(
+                    key: restrictionsKey,
                     text: "Ограничения",
                     buttonsData: [
                       {'name': 'Веганы', 'isSelected': false},

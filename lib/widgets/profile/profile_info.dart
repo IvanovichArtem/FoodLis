@@ -8,7 +8,7 @@ class ProfileInfo extends StatefulWidget {
   final String profileImageUrl;
   final int scores;
   final List<String> categories;
-  final String level;
+  final int level;
 
   const ProfileInfo({
     super.key,
@@ -26,6 +26,8 @@ class _ProfileInfoState extends State<ProfileInfo> {
   String name = '';
   String surname = '';
   String phone = '';
+  int level = 1;
+  int scores = 0;
 
   @override
   void initState() {
@@ -50,6 +52,8 @@ class _ProfileInfoState extends State<ProfileInfo> {
         name = userDoc['name'];
         surname = userDoc['surname'];
         phone = userDoc['phoneNumber'];
+        level = 4;
+        scores = 1;
       });
     }
   }
@@ -160,7 +164,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                             padding: const EdgeInsets.fromLTRB(8, 4, 12, 0),
                             child: Row(
                               children: [
-                                Text("Уровень ${widget.level}",
+                                Text("Уровень ${level}",
                                     style: GoogleFonts.montserrat(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w500,
@@ -221,7 +225,7 @@ class _ProfileInfoState extends State<ProfileInfo> {
                               width: 10,
                             ),
                             Text(
-                              widget.scores.toString(),
+                              scores.toString(),
                               style: GoogleFonts.montserrat(
                                   fontSize: 17,
                                   color: const Color.fromARGB(255, 41, 41, 41)),

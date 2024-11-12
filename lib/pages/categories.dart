@@ -10,7 +10,8 @@ import 'package:food_lis/widgets/modal_bottom_sheet.dart';
 import 'package:food_lis/widgets/categories/add_widget.dart';
 
 class Categoires extends StatefulWidget {
-  const Categoires({super.key});
+  final onSearch;
+  const Categoires({super.key, this.onSearch});
 
   @override
   State<Categoires> createState() => _CategoiresState();
@@ -20,7 +21,7 @@ class _CategoiresState extends State<Categoires> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CategoryAppBar(),
+      appBar: CategoryAppBar(func: widget.onSearch),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,7 +158,8 @@ class _CategoiresState extends State<Categoires> {
 }
 
 class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CategoryAppBar({super.key});
+  final func;
+  const CategoryAppBar({super.key, this.func});
 
   @override
   Size get preferredSize =>
@@ -246,10 +248,12 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: SizedBox(
                   height: 48,
-                  child: SearchInput(),
+                  child: SearchInput(
+                    onTap: func,
+                  ),
                 ),
               ),
             ],

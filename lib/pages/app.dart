@@ -16,12 +16,20 @@ class _MyAppPageState extends State<MyAppPage> {
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
 
-  final List<Widget> _pages = [
-    const Categoires(),
-    const MapScreen(initialIndex: 0, data: []),
-    const Chel(),
-    const Profile(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      Categoires(onSearch: () {
+        _onItemTapped(1);
+      }),
+      const MapScreen(initialIndex: 0, data: []),
+      const Chel(),
+      const Profile(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {

@@ -108,7 +108,7 @@ class _ListMapItemState extends State<ListMapItem> {
         avgPrice: widget.avgPrice,
         avgReview: widget.avgReview,
         cntReviews: widget.cntReviews,
-        isToogle: false);
+        isToogle: isBookmarked);
   }
 
   @override

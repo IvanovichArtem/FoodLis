@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:food_lis/widgets/categories/restaraunt_card.dart';
 import 'package:food_lis/widgets/categories/dish_card.dart';
 
@@ -26,6 +26,12 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
 
   Future<void> fetchRestaurantData() async {
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('User not authenticated');
+        return;
+      }
+
       final querySnapshot =
           await FirebaseFirestore.instance.collection('restaraunts').get();
 
@@ -35,8 +41,21 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
         if (storagePath.length == 0) {
           continue;
         }
+
         final downloadUrl =
             await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
+
+        final userDocId = '${user.uid}_${doc.id}';
+        final userRestDoc = await FirebaseFirestore.instance
+            .collection('user_rest')
+            .doc(userDocId)
+            .get();
+        bool isToogle;
+        if (userRestDoc.exists) {
+          isToogle = userRestDoc['isBookmarked'];
+        } else {
+          isToogle = false;
+        }
 
         restaurantData.add({
           'restId': doc.id,
@@ -47,18 +66,17 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
           'endTime': data['endTime'],
           'restarauntType': data['restarauntType'],
           'avgPrice': data['avgPrice'],
-          'isToogle': false,
+          'isToogle': isToogle,
         });
       }
 
-      // Сортируем рестораны сначала по рейтингу (по убыванию), затем по количеству отзывов (по убыванию)
+      // Sort restaurants by rating (descending) and then by review count (descending)
       restaurantData.sort((a, b) {
-        final ratingComparison = b['rating'].compareTo(a['rating']);
+        final ratingComparison = b['avgReview'].compareTo(a['avgReview']);
         if (ratingComparison != 0) {
-          return ratingComparison; // Если рейтинг не равен, сортируем только по рейтингу
+          return ratingComparison;
         }
-        return b['review_count'].compareTo(a[
-            'review_count']); // Если рейтинги равны, сортируем по количеству отзывов
+        return b['cntReviews'].compareTo(a['cntReviews']);
       });
 
       if (restaurantData.length > 5) {

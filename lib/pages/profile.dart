@@ -28,7 +28,7 @@ class _ProfileState extends State<Profile> {
               profileImageUrl: 'assets/images/fox.jpg',
               scores: 45,
               categories: ['азиатская кухня', 'роллы', 'коктейли', 'бары'],
-              level: '3',
+              level: 3,
             ),
             const SizedBox(height: 10),
             SizedBox(

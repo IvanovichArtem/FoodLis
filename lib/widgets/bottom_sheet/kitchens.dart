@@ -164,3 +164,88 @@ class KitchenItem extends StatelessWidget {
     );
   }
 }
+
+class KitchensFilterWidget2 extends StatefulWidget {
+  final List<Map<String, dynamic>> kitchenData;
+  final int itemInRow;
+
+  const KitchensFilterWidget2(
+      {super.key, required this.kitchenData, required this.itemInRow});
+
+  @override
+  State<KitchensFilterWidget2> createState() => KitchensFilterWidget2State();
+}
+
+class KitchensFilterWidget2State extends State<KitchensFilterWidget2> {
+  late List<KitchenItemState> kitchenItems;
+
+  @override
+  void initState() {
+    super.initState();
+    kitchenItems = widget.kitchenData.map((data) {
+      return KitchenItemState(
+        name: data['name'],
+        imageUrl: data['imageUrl'],
+        isSelected: false,
+      );
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Время дня",
+            style: GoogleFonts.montserrat(
+              color: const Color.fromARGB(255, 48, 48, 48),
+              fontSize: 19,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 5),
+          GridView.count(
+            crossAxisCount: widget.itemInRow,
+            shrinkWrap: true,
+            crossAxisSpacing: 0,
+            mainAxisSpacing: 0,
+            physics: const NeverScrollableScrollPhysics(),
+            children: List.generate(widget.kitchenData.length, (index) {
+              return KitchenItem(
+                isSelected: kitchenItems[index].isSelected,
+                name: kitchenItems[index].name,
+                imageUrl: kitchenItems[index].imageUrl,
+                width: widget.kitchenData[index]['width'],
+                height: widget.kitchenData[index]['height'],
+                onSelected: (isSelected) {
+                  setState(() {
+                    kitchenItems[index].isSelected = isSelected;
+                  });
+                },
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Метод для получения текущего состояния выбранных категорий
+  List<String> getCurrentState() {
+    return kitchenItems
+        .where((item) => item.isSelected)
+        .map((item) => item.name)
+        .toList();
+  }
+
+  void reset() {
+    setState(() {
+      for (var item in kitchenItems) {
+        item.isSelected = false;
+      }
+    });
+  }
+}

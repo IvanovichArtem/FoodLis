@@ -282,6 +282,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         'email': emailController.text.trim(),
         'phoneNumber': phoneController.text.trim(),
         'created': DateTime.now(),
+        'level': 1,
+        'scores': 5,
       });
 
       // Логика после успешной регистрации

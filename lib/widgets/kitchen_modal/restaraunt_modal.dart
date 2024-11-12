@@ -5,6 +5,8 @@ import 'package:food_lis/widgets/kitchen_modal/switch_buttons.dart';
 import 'package:food_lis/widgets/kitchen_modal/restaraunt_info.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomBottomSheet extends StatefulWidget {
   final String name;
@@ -16,6 +18,7 @@ class CustomBottomSheet extends StatefulWidget {
   final int timeByWalk;
   final int avgPrice;
   final bool isToogle;
+  final String id;
 
   const CustomBottomSheet({
     super.key,
@@ -28,6 +31,7 @@ class CustomBottomSheet extends StatefulWidget {
     required this.timeByWalk,
     required this.avgPrice,
     required this.isToogle,
+    required this.id,
   });
 
   @override
@@ -36,6 +40,12 @@ class CustomBottomSheet extends StatefulWidget {
 
 class _CustomBottomSheetState extends State<CustomBottomSheet> {
   bool iconState = false; // Состояние для иконки
+
+  @override
+  void initState() {
+    super.initState();
+    iconState = widget.isToogle; // Инициализируем текущее состояние
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +85,7 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                         padding: const EdgeInsets.fromLTRB(10, 15, 0, 10),
                         child: Column(
                           children: [
-                            const SwitchButtons(),
+                            // const SwitchButtons(),
                             const SizedBox(height: 5),
                             // Имя + иконки
                             Padding(
@@ -198,10 +208,41 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () {
-                          setState(() {
-                            iconState = !iconState; // Меняем состояние
-                          });
+                        onPressed: () async {
+                          final user = FirebaseAuth.instance.currentUser;
+
+                          if (user == null) {
+                            print('User not authenticated');
+                            return;
+                          }
+
+                          final docId = '${user.uid}_${widget.id}';
+                          final docRef = FirebaseFirestore.instance
+                              .collection('user_rest')
+                              .doc(docId);
+
+                          try {
+                            final docSnapshot = await docRef.get();
+
+                            setState(() {
+                              iconState = !iconState; // Toggle the state
+                            });
+
+                            if (docSnapshot.exists) {
+                              // Update the existing document
+                              await docRef.update({'isToogle': iconState});
+                            } else {
+                              // Create a new document
+                              await docRef.set({
+                                'isBookmarked': iconState,
+                                'userId': user.uid,
+                                'restId': widget.id,
+                                // Add other fields as needed
+                              });
+                            }
+                          } catch (e) {
+                            print('Error updating document: $e');
+                          }
                         },
                         icon: Icon(
                           iconState
@@ -255,6 +296,7 @@ void showRestBottomSheet(BuildContext context,
     backgroundColor: Colors.transparent,
     builder: (BuildContext context) {
       return CustomBottomSheet(
+        id: restId,
         name: name,
         imageUrl: imageUrl,
         restarauntType: restarauntType,

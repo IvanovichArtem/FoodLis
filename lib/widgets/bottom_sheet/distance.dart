@@ -13,7 +13,7 @@ class DistanceWidget extends StatefulWidget {
 }
 
 class DistanceWidgetState extends State<DistanceWidget> {
-  double _value = 4.0;
+  double _value = 15.0;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +95,7 @@ class DistanceWidgetState extends State<DistanceWidget> {
 
   void reset() {
     setState(() {
-      _value = 4.0;
+      _value = 15.0;
     });
   }
 
