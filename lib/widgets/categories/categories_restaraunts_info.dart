@@ -1,94 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:food_lis/widgets/categories/restaraunt_card.dart';
 import 'package:food_lis/widgets/categories/dish_card.dart';
+import 'package:food_lis/providers/data_provider.dart';
 
 class PersonalizedInfoWidget extends StatefulWidget {
-  const PersonalizedInfoWidget({super.key});
+  final onAllRest;
+  const PersonalizedInfoWidget({super.key, this.onAllRest});
 
   @override
   State<PersonalizedInfoWidget> createState() => _PersonalizedInfoWidgetState();
 }
 
 class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
+  List<Map<String, dynamic>> dishData = [];
   List<Map<String, dynamic>> restaurantData = [];
-  List<Map<String, dynamic>> dishData = []; // Placeholder for dish data
+  bool readyRest = false;
 
   @override
   void initState() {
     super.initState();
-    fetchRestaurantData();
-    fetchDishData();
+
+    // Добавляем задержку на 3 секунды после super.initState
+    Future.delayed(const Duration(seconds: 3), () {
+      // Получаем данные из Provider один раз
+      final dataProvider = Provider.of<DataProvider>(context, listen: false);
+      restaurantData = dataProvider.restaurantData;
+
+      // Загружаем блюда
+      fetchDishData();
+    });
   }
 
-  Future<void> fetchRestaurantData() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print('User not authenticated');
-        return;
-      }
-
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('restaraunts').get();
-
-      for (var doc in querySnapshot.docs) {
-        final data = doc.data();
-        final storagePath = data['imageUrl'];
-        if (storagePath.length == 0) {
-          continue;
-        }
-
-        final downloadUrl =
-            await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
-
-        final userDocId = '${user.uid}_${doc.id}';
-        final userRestDoc = await FirebaseFirestore.instance
-            .collection('user_rest')
-            .doc(userDocId)
-            .get();
-        bool isToogle;
-        if (userRestDoc.exists) {
-          isToogle = userRestDoc['isBookmarked'];
-        } else {
-          isToogle = false;
-        }
-
-        restaurantData.add({
-          'restId': doc.id,
-          'name': data['name'],
-          'avgReview': data['avgReview'],
-          'cntReviews': data['cntReviews'],
-          'imageUrl': downloadUrl,
-          'endTime': data['endTime'],
-          'restarauntType': data['restarauntType'],
-          'avgPrice': data['avgPrice'],
-          'isToogle': isToogle,
-        });
-      }
-
-      // Sort restaurants by rating (descending) and then by review count (descending)
-      restaurantData.sort((a, b) {
-        final ratingComparison = b['avgReview'].compareTo(a['avgReview']);
-        if (ratingComparison != 0) {
-          return ratingComparison;
-        }
-        return b['cntReviews'].compareTo(a['cntReviews']);
-      });
-
-      if (restaurantData.length > 5) {
-        restaurantData = restaurantData.sublist(0, 5);
-      }
-
-      setState(() {});
-    } catch (e) {
-      print('Error fetching restaurant data: $e');
-    }
-  }
-
+  // Метод для загрузки данных о блюдах
   Future<void> fetchDishData() async {
     try {
       final querySnapshot =
@@ -101,25 +48,28 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
         final downloadUrl =
             await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
 
-        dishData.add({
-          'name': data['name'],
-          'restaraunt': data['restaraunt'],
-          'rating': data['rating'],
-          'review_count': data['reviewCount'],
-          'imageUrl': downloadUrl,
-        });
+        // Проверяем, существует ли уже такое блюдо в списке
+        if (!dishData.any((dish) => dish['name'] == data['name'])) {
+          dishData.add({
+            'name': data['name'],
+            'restaraunt': data['restaraunt'],
+            'rating': data['rating'],
+            'review_count': data['reviewCount'],
+            'imageUrl': downloadUrl,
+          });
+        }
       }
 
-      // Сортируем блюда сначала по рейтингу (по убыванию), затем по количеству отзывов (по убыванию)
+      // Сортируем блюда по рейтингу и количеству отзывов
       dishData.sort((a, b) {
         final ratingComparison = b['rating'].compareTo(a['rating']);
         if (ratingComparison != 0) {
-          return ratingComparison; // Если рейтинг не равен, сортируем только по рейтингу
+          return ratingComparison;
         }
-        return b['review_count'].compareTo(a[
-            'review_count']); // Если рейтинги равны, сортируем по количеству отзывов
+        return b['review_count'].compareTo(a['review_count']);
       });
 
+      // Ограничиваем количество блюд до 5
       if (dishData.length > 5) {
         dishData = dishData.sublist(0, 5);
       }
@@ -132,6 +82,20 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> sortedRestaurants = List.from(restaurantData)
+      ..sort((a, b) {
+        final ratingComparison = b['avgReview'].compareTo(a['avgReview']);
+        if (ratingComparison != 0) {
+          return ratingComparison;
+        }
+        return b['cntReviews'].compareTo(a['cntReviews']);
+      });
+
+    // Проверяем, есть ли уже 5 ресторанов
+    if (sortedRestaurants.length > 5) {
+      sortedRestaurants = sortedRestaurants.sublist(0, 5);
+    }
+
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -140,7 +104,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
       ),
       child: Column(
         children: [
-          // Рестораны
+          // Отображение ресторанов
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 15, 15, 10),
             child: Row(
@@ -155,24 +119,29 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                   ),
                 ),
                 const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Все",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 15,
-                        fontWeight: FontWeight.normal,
-                        color: const Color.fromARGB(255, 138, 138, 142),
+                GestureDetector(
+                  onTap: () {
+                    widget.onAllRest();
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Все",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 15,
+                          fontWeight: FontWeight.normal,
+                          color: const Color.fromARGB(255, 138, 138, 142),
+                        ),
                       ),
-                    ),
-                    const Icon(
-                      Icons.arrow_forward_ios_outlined,
-                      color: Color.fromARGB(255, 138, 138, 142),
-                      size: 12,
-                    ),
-                  ],
-                ),
+                      const Icon(
+                        Icons.arrow_forward_ios_outlined,
+                        color: Color.fromARGB(255, 138, 138, 142),
+                        size: 12,
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
           ),
@@ -189,7 +158,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 5, 0),
               child: Row(
-                children: restaurantData.asMap().entries.map((entry) {
+                children: sortedRestaurants.asMap().entries.map((entry) {
                   final restaurant = entry.value;
                   final index = entry.key;
 
@@ -207,7 +176,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                         avgPrice: restaurant['avgPrice'],
                         isToogle: restaurant['isToogle'],
                       ),
-                      if (index < restaurantData.length - 1)
+                      if (index < sortedRestaurants.length - 1)
                         const SizedBox(width: 8),
                     ],
                   );
@@ -215,7 +184,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
               ),
             ),
           ),
-          // Additional widgets, like dish data, can be added here
+          // Отображение блюд
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 15, 15, 10),
             child: Row(
@@ -277,8 +246,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                         review_count: dish['review_count'],
                         imageUrl: dish['imageUrl'],
                       ),
-                      if (index < restaurantData.length - 1)
-                        const SizedBox(width: 8),
+                      if (index < dishData.length - 1) const SizedBox(width: 8),
                     ],
                   );
                 }).toList(),

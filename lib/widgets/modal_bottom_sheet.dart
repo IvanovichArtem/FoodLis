@@ -8,18 +8,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 import 'package:location/location.dart';
 
-void showCustomBottomSheet(BuildContext context) {
+void showCustomBottomSheet(BuildContext context, Function _showFilter) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.white,
     builder: (BuildContext context) {
-      return _BottomSheetContent();
+      return _BottomSheetContent(showFilter: _showFilter);
     },
   );
 }
 
 class _BottomSheetContent extends StatefulWidget {
+  final Function showFilter;
+
+  void closeBottomSheet(BuildContext context) {
+    Navigator.pop(context); // Закрывает текущий BottomSheet
+  }
+
+  _BottomSheetContent({required this.showFilter});
+
   @override
   __BottomSheetContentState createState() => __BottomSheetContentState();
 }
@@ -90,10 +98,13 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
     var snapshot =
         await FirebaseFirestore.instance.collection('restaraunts').get();
 
-    // Преобразуем документы в List<Map<String, dynamic>> и добавляем расстояние
+    // Преобразуем документы в List<Map<String, dynamic>> и добавляем расстояние и id
     List<Map<String, dynamic>> restaurantsWithDistance =
         snapshot.docs.map((doc) {
       Map<String, dynamic> restaurantData = doc.data() as Map<String, dynamic>;
+
+      // Добавляем id документа
+      restaurantData['id'] = doc.id;
 
       // Получаем координаты ресторана
       double restaurantLatitude = restaurantData['location'].latitude;
@@ -242,7 +253,11 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
       }).toList();
     }
 
-    print("Current States: $currentState");
+    var result = restaurants.map((item) => item['id'] as String).toList();
+    try {
+      widget.showFilter(result);
+      widget.closeBottomSheet(context);
+    } catch (NoSuchMethodError) {}
   }
 
   @override
@@ -417,7 +432,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                   ),
                   MultipleToogleWidgetWithIcons(
                     key: featuresKey,
-                    text: "Особенности",
+                    text: "Дополнительно",
                     buttonsData: [
                       {
                         'icon': Icons.wifi,
@@ -479,7 +494,7 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                   const SizedBox(height: 10),
                   MultipleToogleWidgetRestrictions(
                     key: restrictionsKey,
-                    text: "Ограничения",
+                    text: "Особенности",
                     buttonsData: [
                       {'name': 'Веганы', 'isSelected': false},
                       {'name': 'Вегетарианцы', 'isSelected': false},

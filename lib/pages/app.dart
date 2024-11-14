@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Импорт Provider
+import 'package:food_lis/providers/data_provider.dart'; // Импорт вашего DataProvider
 import 'categories.dart';
 import 'map.dart';
 import 'chel.dart';
@@ -15,17 +17,38 @@ class MyAppPage extends StatefulWidget {
 class _MyAppPageState extends State<MyAppPage> {
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
+  int _mapIndex = 0;
+  late List<Widget> _pages;
 
-  late final List<Widget> _pages;
+  void onAllRest() {
+    setState(() {
+      _pages[1] =
+          MapScreen(initialIndex: 1, data: []); // Обновляем индекс карты
+      _onItemTapped(1); // Переходим на экран карты
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+
+    // Вызываем загрузку данных при инициализации
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<DataProvider>(context, listen: false).fetchRestaurantData();
+    });
+
+    // Инициализируем список экранов
     _pages = [
-      Categoires(onSearch: () {
-        _onItemTapped(1);
-      }),
-      const MapScreen(initialIndex: 0, data: []),
+      Categoires(
+        onSearch: () {
+          // _onItemTapped(1);
+        },
+        onAllRest: onAllRest,
+      ),
+      MapScreen(
+          key: ValueKey<int>(_mapIndex),
+          initialIndex: _mapIndex,
+          data: const []), // Обновляем MapScreen с новым ключом
       const Chel(),
       const Profile(),
     ];

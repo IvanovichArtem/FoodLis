@@ -21,7 +21,11 @@ class MapScreen extends StatefulWidget {
   final int initialIndex;
   final List<Map<String, dynamic>> data;
 
-  const MapScreen({super.key, required this.initialIndex, required this.data});
+  const MapScreen({
+    super.key,
+    required this.initialIndex,
+    required this.data,
+  });
 
   @override
   _MapScreenState createState() => _MapScreenState();
@@ -200,6 +204,62 @@ class _MapScreenState extends State<MapScreen> {
       }
     }
     _searchResults = {};
+  }
+
+  void _showStock() {
+    _showAll();
+
+    // Создание случайного генератора с seed=42 для воспроизводимости
+    final random = Random(42);
+
+    // Генерация списка случайных уникальных индексов (из 5 элементов)
+    Set<int> randomIndexes = {};
+    while (randomIndexes.length < 5) {
+      randomIndexes.add(random.nextInt(restarauntData.length));
+    }
+
+    // Проходим по всем элементам restaurantData и устанавливаем isVisible
+    setState(() {
+      for (int i = 0; i < restarauntData.length; i++) {
+        if (!randomIndexes.contains(i)) {
+          restarauntData[i]['isVisible'] = false;
+        } else {
+          restarauntData[i]['isVisible'] = true;
+        }
+      }
+      _currentIndex = 1;
+    });
+  }
+
+  void _showBest() {
+    _showAll();
+    // Сортируем список restaurantData по ключу avgReview в порядке убывания
+    setState(() {
+      restarauntData.sort((a, b) {
+        // Сравниваем значения avgReview для двух элементов
+        return b['avgReview'].compareTo(a['avgReview']);
+      });
+      _currentIndex = 1;
+    });
+  }
+
+  void _showFilter(List filteredIds) {
+    _showAll();
+
+    setState(() {
+      _currentIndex = 1;
+
+      // Проходим по всем элементам restaurantData
+      for (var restaurant in restarauntData) {
+        // Проверяем, есть ли id ресторана в filteredIds
+        if (!filteredIds.contains(restaurant['id'])) {
+          // Если id нет в filteredIds, добавляем isVisible: false
+          restaurant['isVisible'] = false;
+        } else {
+          // Если id есть в filteredIds, то оставляем isVisible как true или не меняем
+        }
+      }
+    });
   }
 
   void _updateSearchResults(List<Map<String, dynamic>> searchResults) {
@@ -406,8 +466,12 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: MapAppBar(
+        showStock: _showStock,
+        showBest: _showBest,
+        showFilter: _showFilter,
         onButtonPressed: () => {
           _showAll(needState: true),
+          // if (_currentIndex == 1) {_currentIndex = 0} else {_currentIndex = 1}
         },
         currentIndex: _currentIndex,
         searchCallback: _updateSearchResults,
@@ -442,57 +506,69 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 15, 0, 60),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(0, 150, 0, 0),
-                      itemCount: restarauntData.length,
-                      itemBuilder: (context, index) {
-                        final item = restarauntData[index];
+                    child: restarauntData.isEmpty ||
+                            restarauntData
+                                .every((item) => item['isVisible'] == false)
+                        ? Center(
+                            child: Text(
+                            'Нет доступных ресторанов',
+                            style: GoogleFonts.montserrat(
+                                color: Color.fromARGB(255, 48, 48, 48),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500),
+                          ))
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(0, 150, 0, 0),
+                            itemCount: restarauntData.length,
+                            itemBuilder: (context, index) {
+                              final item = restarauntData[index];
 
-                        // Проверка на null для каждого необходимого поля
-                        if (item['imageUrl'] == null ||
-                            item['name'] == null ||
-                            item['restarauntType'] == null ||
-                            item['avgReview'] == null ||
-                            item['cntReviews'] == null ||
-                            item['avgPrice'] == null ||
-                            item['id'] == null ||
-                            !item['isVisible'] ||
-                            (_searchResults.isNotEmpty &&
-                                !_searchResults.contains(item['id']))) {
-                          return SizedBox
-                              .shrink(); // Пропустить элемент, если любое из значений null
-                        }
+                              // Проверка на null для каждого необходимого поля
+                              if (item['imageUrl'] == null ||
+                                  item['name'] == null ||
+                                  item['restarauntType'] == null ||
+                                  item['avgReview'] == null ||
+                                  item['cntReviews'] == null ||
+                                  item['avgPrice'] == null ||
+                                  item['id'] == null ||
+                                  !item['isVisible'] ||
+                                  (_searchResults.isNotEmpty &&
+                                      !_searchResults.contains(item['id']))) {
+                                return SizedBox
+                                    .shrink(); // Пропустить элемент, если любое из значений null
+                              }
 
-                        // Если все значения не null, создаем ListMapItem
-                        return Column(
-                          children: [
-                            ListMapItem(
-                              imageUrl: item['imageUrl'],
-                              name: item['name'],
-                              restarauntType: item['restarauntType'],
-                              avgReview: item['avgReview'],
-                              cntReviews: item['cntReviews'],
-                              timeByWalk: 5,
-                              avgPrice: item['avgPrice'],
-                              isToogle: item['isToogle'],
-                              endTime: item['endTime'],
-                              documentId: item['id'],
-                            ),
-                            SizedBox(
-                              height: 6,
-                            ),
-                            Divider(
-                                height: 1.0,
-                                indent: 16,
-                                endIndent: 16,
-                                color: Colors.grey),
-                            SizedBox(
-                              height: 8,
-                            ) // маленький divider
-                          ],
-                        );
-                      },
-                    ),
+                              // Если все значения не null, создаем ListMapItem
+                              return Column(
+                                children: [
+                                  ListMapItem(
+                                    imageUrl: item['imageUrl'],
+                                    name: item['name'],
+                                    restarauntType: item['restarauntType'],
+                                    avgReview: item['avgReview'],
+                                    cntReviews: item['cntReviews'],
+                                    timeByWalk: 5,
+                                    avgPrice: item['avgPrice'],
+                                    isToogle: item['isToogle'],
+                                    endTime: item['endTime'],
+                                    documentId: item['id'],
+                                  ),
+                                  SizedBox(
+                                    height: 6,
+                                  ),
+                                  Divider(
+                                    height: 1.0,
+                                    indent: 16,
+                                    endIndent: 16,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(
+                                    height: 8,
+                                  ), // маленький divider
+                                ],
+                              );
+                            },
+                          ),
                   )
                 ],
               ),
@@ -500,7 +576,8 @@ class _MapScreenState extends State<MapScreen> {
                   ? Align(
                       alignment: Alignment.topRight,
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 160, 16, 0),
+                        padding: EdgeInsets.fromLTRB(0,
+                            MediaQuery.of(context).size.height * 0.21, 16, 0),
                         child: FloatingActionButton(
                           backgroundColor: Colors.white,
                           onPressed: _moveToCurrentLocation,
@@ -725,6 +802,9 @@ class _MapScreenState extends State<MapScreen> {
 
 class MapAppBar extends StatefulWidget implements PreferredSizeWidget {
   final onButtonPressed;
+  final showStock;
+  final showBest;
+  final showFilter;
   final int currentIndex;
   final Function(List<Map<String, dynamic>>) searchCallback;
 
@@ -733,10 +813,13 @@ class MapAppBar extends StatefulWidget implements PreferredSizeWidget {
     required this.onButtonPressed,
     required this.currentIndex,
     required this.searchCallback,
+    this.showStock,
+    this.showBest,
+    this.showFilter,
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight * 2);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight * 2.11);
 
   @override
   _MapAppBarState createState() => _MapAppBarState();
@@ -748,9 +831,10 @@ class _MapAppBarState extends State<MapAppBar> {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
       automaticallyImplyLeading: true,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios),
+        icon: Icon(Icons.refresh_outlined),
         onPressed: () => {widget.onButtonPressed()},
         color: const Color.fromARGB(255, 48, 48, 48),
       ),
@@ -777,7 +861,7 @@ class _MapAppBarState extends State<MapAppBar> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    showCustomBottomSheet(context);
+                    showCustomBottomSheet(context, widget.showFilter);
                   },
                   child: Container(
                     width: 34,
@@ -798,7 +882,7 @@ class _MapAppBarState extends State<MapAppBar> {
                   width: 8,
                 ),
                 GestureDetector(
-                  onTap: () => {}, // Обработчик нажатия
+                  onTap: () => {widget.showStock()}, // Обработчик нажатия
                   child: Container(
                     width: 100,
                     height: 30,
@@ -835,7 +919,7 @@ class _MapAppBarState extends State<MapAppBar> {
                   width: 8,
                 ),
                 GestureDetector(
-                  onTap: () => {}, // Обработчик нажатия
+                  onTap: () => {widget.showBest()}, // Обработчик нажатия
                   child: Container(
                     width: 100,
                     height: 30,

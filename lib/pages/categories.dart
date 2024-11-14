@@ -11,7 +11,8 @@ import 'package:food_lis/widgets/categories/add_widget.dart';
 
 class Categoires extends StatefulWidget {
   final onSearch;
-  const Categoires({super.key, this.onSearch});
+  final onAllRest;
+  const Categoires({super.key, this.onSearch, this.onAllRest});
 
   @override
   State<Categoires> createState() => _CategoiresState();
@@ -146,7 +147,9 @@ class _CategoiresState extends State<Categoires> {
               ),
             ),
 
-            const PersonalizedInfoWidget(),
+            PersonalizedInfoWidget(
+              onAllRest: widget.onAllRest,
+            ),
             const SizedBox(
               height: 15,
             ),
@@ -230,7 +233,7 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
               GestureDetector(
                 onTap: () {
                   showCustomBottomSheet(
-                      context); // Вызываем функцию из другого файла
+                      context, () => {}); // Вызываем функцию из другого файла
                 },
                 child: Container(
                   width: 48,

@@ -7,14 +7,14 @@ import 'package:firebase_core/firebase_core.dart' show Firebase;
 import 'package:firebase_auth/firebase_auth.dart'; // Для работы с аутентификацией
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:food_lis/providers/map_provider.dart';
+import 'package:food_lis/providers/data_provider.dart';
 
 void main() async {
   AndroidYandexMap.useAndroidViewSurface = false;
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Инициализация Firebase
   runApp(MultiProvider(
-    providers: [ChangeNotifierProvider(create: (_) => MapProvider())],
+    providers: [ChangeNotifierProvider(create: (_) => DataProvider())],
     child: MyApp(),
   ));
 }
@@ -32,6 +32,7 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: [
         const Locale('ru', ''), // Russian
