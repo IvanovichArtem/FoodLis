@@ -36,7 +36,7 @@ class _RestarauntInfoState extends State<RestarauntInfo> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 15, 0, 0),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
       child: Column(
         children: [
           Row(
@@ -56,7 +56,7 @@ class _RestarauntInfoState extends State<RestarauntInfo> {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.montserrat(
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: FontWeight.w400,
                       color: const Color.fromARGB(255, 114, 114, 114),
                     ),

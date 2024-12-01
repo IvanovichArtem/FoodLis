@@ -1,4 +1,8 @@
+import 'dart:ffi';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:food_lis/pages/map.dart';
 import 'package:food_lis/widgets/bottom_sheet/receipt.dart';
 import 'package:food_lis/widgets/bottom_sheet/kitchens.dart';
 import 'package:food_lis/widgets/bottom_sheet/restaraunt_type.dart';
@@ -8,25 +12,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 import 'package:location/location.dart';
 
-void showCustomBottomSheet(BuildContext context, Function _showFilter) {
+void showCustomBottomSheet(
+    BuildContext context, Function _showFilter, bool isCategory) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.white,
     builder: (BuildContext context) {
-      return _BottomSheetContent(showFilter: _showFilter);
+      return _BottomSheetContent(
+        showFilter: _showFilter,
+        isCategory: isCategory,
+      );
     },
   );
 }
 
 class _BottomSheetContent extends StatefulWidget {
   final Function showFilter;
+  final isCategory;
 
   void closeBottomSheet(BuildContext context) {
     Navigator.pop(context); // Закрывает текущий BottomSheet
   }
 
-  _BottomSheetContent({required this.showFilter});
+  _BottomSheetContent({required this.showFilter, this.isCategory});
 
   @override
   __BottomSheetContentState createState() => __BottomSheetContentState();
@@ -61,6 +70,42 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
   @override
   void initState() {
     super.initState();
+  }
+
+  void show(List<Map<String, dynamic>> _searchResults) async {
+    var storage = FirebaseStorage.instance;
+
+    // Обновляем каждый элемент списка
+    var updatedResults = await Future.wait(_searchResults.map((item) async {
+      item['isVisible'] = true;
+
+      if (item['imageUrl'] != null && item['imageUrl'] is String) {
+        try {
+          // Получаем URL изображения из Firebase Storage
+          String downloadUrl =
+              await storage.ref(item['imageUrl']).getDownloadURL();
+          item['imageUrl'] = downloadUrl;
+        } catch (e) {
+          print("Ошибка при получении URL изображения: $e");
+        }
+      }
+
+      return item;
+    }).toList());
+
+    // Переход на MapScreen с обновленными результатами
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => MapScreen(
+    //       initialIndex: 1,
+    //       data: updatedResults,
+    //       isSearch: true,
+    //     ),
+    //   ),
+    // );
+
+    widget.closeBottomSheet(context); // закрытие BottomSheet
   }
 
   void resetStates() {
@@ -253,10 +298,25 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
       }).toList();
     }
 
-    var result = restaurants.map((item) => item['id'] as String).toList();
+    List<Map<String, dynamic>>? fullResult;
+    List<String>? idResult;
+
+    if (widget.isCategory) {
+      fullResult = restaurants
+          .cast<Map<String, dynamic>>(); // приведение списка к нужному типу
+    } else {
+      idResult = restaurants
+          .map((item) => item['id'] as String)
+          .toList(); // если isCategory false, только id
+    }
+
     try {
-      widget.showFilter(result);
-      widget.closeBottomSheet(context);
+      if (widget.isCategory && fullResult != null) {
+        show(fullResult); // вызов show с полной информацией
+      } else if (idResult != null) {
+        widget.showFilter(idResult); // вызов showFilter только с id
+        widget.closeBottomSheet(context); // закрытие BottomSheet
+      }
     } catch (NoSuchMethodError) {}
   }
 
@@ -305,56 +365,56 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                       {
                         'name': 'Азиатская',
                         'imageUrl': 'assets/images/kitchens/азиатская.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                       {
                         'name': 'Итальянская',
                         'imageUrl':
                             'assets/images/kitchens/итальянская кухня_2.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                       {
                         'name': 'Белорусская',
                         'imageUrl': 'assets/images/kitchens/белорусская.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                       {
                         'name': 'Грузинская',
                         'imageUrl': 'assets/images/kitchens/грузинская.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                       {
                         'name': 'Европейская',
                         'imageUrl': 'assets/images/kitchens/европейская.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                       {
                         'name': 'Американская',
                         'imageUrl': 'assets/images/kitchens/американская.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                       {
                         'name': 'Авторская',
                         'imageUrl': 'assets/images/kitchens/авторская.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                       {
                         'name': 'Смешанная',
                         'imageUrl': 'assets/images/kitchens/смешанная.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                       {
                         'name': 'Вегетарианская',
                         'imageUrl': 'assets/images/kitchens/вегетарианская.jpg',
-                        'width': 102.0,
+                        'width': 95.0,
                         'height': 73.0,
                       },
                     ],
@@ -400,30 +460,31 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
                   KitchensFilterWidget2(
                     key: dayTimeKey,
                     itemInRow: 4,
+                    distBetween: 4,
                     kitchenData: [
                       {
                         'name': 'Завтрак',
                         'imageUrl': 'assets/images/kitchens/Завтрак.jpg',
-                        'width': 86.0,
-                        'height': 86.0,
+                        'width': 75.0,
+                        'height': 75.0,
                       },
                       {
                         'name': 'Обед',
                         'imageUrl': 'assets/images/kitchens/Обед.jpg',
-                        'width': 86.0,
-                        'height': 86.0,
+                        'width': 75.0,
+                        'height': 75.0,
                       },
                       {
                         'name': 'Бранч',
                         'imageUrl': 'assets/images/kitchens/Бранч.jpg',
-                        'width': 86.0,
-                        'height': 86.0,
+                        'width': 75.0,
+                        'height': 75.0,
                       },
                       {
                         'name': 'Ужин',
                         'imageUrl': 'assets/images/kitchens/Ужин.jpg',
-                        'width': 86.0,
-                        'height': 86.0,
+                        'width': 75.0,
+                        'height': 75.0,
                       },
                     ],
                   ),

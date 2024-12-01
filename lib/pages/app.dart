@@ -17,13 +17,26 @@ class MyAppPage extends StatefulWidget {
 class _MyAppPageState extends State<MyAppPage> {
   int _selectedIndex = 0;
   final PageController _pageController = PageController();
-  int _mapIndex = 0;
   late List<Widget> _pages;
 
   void onAllRest() {
     setState(() {
-      _pages[1] =
-          MapScreen(initialIndex: 1, data: []); // Обновляем индекс карты
+      _pages[1] = MapScreen(
+        initialIndex: 1,
+        data: [],
+        isSearch: false,
+      ); // Обновляем индекс карты
+      _onItemTapped(1); // Переходим на экран карты
+    });
+  }
+
+  void onSearch() {
+    setState(() {
+      _pages[1] = MapScreen(
+        initialIndex: 1,
+        data: [],
+        isSearch: true,
+      ); // Обновляем индекс карты
       _onItemTapped(1); // Переходим на экран карты
     });
   }
@@ -40,15 +53,15 @@ class _MyAppPageState extends State<MyAppPage> {
     // Инициализируем список экранов
     _pages = [
       Categoires(
-        onSearch: () {
-          // _onItemTapped(1);
-        },
+        onSearch: onSearch,
         onAllRest: onAllRest,
       ),
       MapScreen(
-          key: ValueKey<int>(_mapIndex),
-          initialIndex: _mapIndex,
-          data: const []), // Обновляем MapScreen с новым ключом
+        key: ValueKey<int>(0),
+        initialIndex: 0,
+        data: const [],
+        isSearch: false,
+      ), // Обновляем MapScreen с новым ключом
       const Chel(),
       const Profile(),
     ];
@@ -57,8 +70,12 @@ class _MyAppPageState extends State<MyAppPage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      _pageController.jumpToPage(index);
     });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut, // Плавная анимация
+    );
   }
 
   @override
@@ -72,12 +89,12 @@ class _MyAppPageState extends State<MyAppPage> {
     return Scaffold(
       body: PageView(
         controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(), // Отключаем свайпы
         onPageChanged: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
-        physics: const NeverScrollableScrollPhysics(),
         children: _pages,
       ),
       bottomNavigationBar: BottomNavBar(

@@ -22,7 +22,7 @@ class _CategoiresState extends State<Categoires> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CategoryAppBar(func: widget.onSearch),
+      appBar: CategoryAppBar(showFilter: widget.onSearch),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,25 +41,30 @@ class _CategoiresState extends State<Categoires> {
                     MainAxisAlignment.spaceBetween, // Распределение с краями
                 children: [
                   KitchenItem(
+                    id: 'Завтрак',
                     name: 'Завтрак',
                     width: 73,
                     height: 73,
+                    field: 'x',
                   ),
                   KitchenItem(
-                    name: 'Бранч',
-                    width: 73,
-                    height: 73,
-                  ),
+                      id: 'Бранч',
+                      name: 'Бранч',
+                      width: 73,
+                      height: 73,
+                      field: 'x'),
                   KitchenItem(
-                    name: 'Обед',
-                    width: 73,
-                    height: 73,
-                  ),
+                      id: 'Обед',
+                      name: 'Обед',
+                      width: 73,
+                      height: 73,
+                      field: 'x'),
                   KitchenItem(
-                    name: 'Ужин',
-                    width: 73,
-                    height: 73,
-                  ),
+                      id: 'Ужин',
+                      name: 'Ужин',
+                      width: 73,
+                      height: 73,
+                      field: 'x'),
                 ],
               ),
             ),
@@ -72,17 +77,21 @@ class _CategoiresState extends State<Categoires> {
                   Column(
                     children: [
                       KitchenItem(
+                        id: 'Азиатская',
                         name: 'Азиатская кухня',
                         width: 158,
                         height: 170,
+                        field: 'kitchenType',
                       ),
                       SizedBox(
                         height: 7,
                       ),
                       KitchenItem(
+                        id: 'Pet friendly',
                         name: 'Pet friendly',
                         width: 158,
                         height: 73,
+                        field: 'features',
                       ),
                     ],
                   ),
@@ -90,16 +99,20 @@ class _CategoiresState extends State<Categoires> {
                     children: [
                       KitchenItem(
                         name: 'Терасса',
+                        id: 'Терраса',
                         width: 158,
                         height: 73,
+                        field: 'features',
                       ),
                       SizedBox(
                         height: 7,
                       ),
                       KitchenItem(
+                        id: 'Итальянская',
                         name: 'Итальянская кухня',
                         width: 158,
                         height: 170,
+                        field: 'kitchenType',
                       ),
                     ],
                   ),
@@ -112,24 +125,32 @@ class _CategoiresState extends State<Categoires> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   KitchenItem(
+                    id: 'Кофе',
                     name: 'Кофе',
                     width: 73,
                     height: 73,
+                    field: 'x',
                   ),
                   KitchenItem(
+                    id: 'Пиво',
                     name: 'Пиво',
                     width: 73,
                     height: 73,
+                    field: 'x',
                   ),
                   KitchenItem(
+                    id: 'Коктейли',
                     name: 'Коктейли',
                     width: 73,
                     height: 73,
+                    field: 'x',
                   ),
                   KitchenItem(
+                    id: '24 часа',
                     name: '24 часа',
                     width: 73,
                     height: 73,
+                    field: 'features',
                   ),
                 ],
               ),
@@ -161,8 +182,8 @@ class _CategoiresState extends State<Categoires> {
 }
 
 class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final func;
-  const CategoryAppBar({super.key, this.func});
+  final showFilter;
+  const CategoryAppBar({super.key, this.showFilter});
 
   @override
   Size get preferredSize =>
@@ -232,8 +253,8 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               GestureDetector(
                 onTap: () {
-                  showCustomBottomSheet(
-                      context, () => {}); // Вызываем функцию из другого файла
+                  showCustomBottomSheet(context, showFilter,
+                      true); // Вызываем функцию из другого файла
                 },
                 child: Container(
                   width: 48,
@@ -254,9 +275,7 @@ class CategoryAppBar extends StatelessWidget implements PreferredSizeWidget {
               Expanded(
                 child: SizedBox(
                   height: 48,
-                  child: SearchInput(
-                    onTap: func,
-                  ),
+                  child: SearchInput(),
                 ),
               ),
             ],

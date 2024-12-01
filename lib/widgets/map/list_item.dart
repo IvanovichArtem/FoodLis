@@ -19,8 +19,10 @@ class ListMapItem extends StatefulWidget {
   final int avgPrice;
   final bool isToogle;
   final String endTime;
-  final String
-      documentId; // Добавим идентификатор документа для обновления данных в Firebase
+  final String documentId;
+  final String videoUrl;
+  final String siteUrl;
+  final String instaUrl;
 
   const ListMapItem({
     super.key,
@@ -33,7 +35,11 @@ class ListMapItem extends StatefulWidget {
     required this.avgPrice,
     required this.isToogle,
     required this.documentId,
-    required this.endTime, // Добавляем новый параметр
+    required this.endTime,
+    required this.videoUrl,
+    required this.siteUrl,
+    required this.instaUrl,
+    // Добавляем новый параметр
   });
 
   @override
@@ -50,40 +56,6 @@ class _ListMapItemState extends State<ListMapItem> {
   }
 
   // Метод для обновления состояния в Firestore и изменения иконки
-  Future<void> _toggleBookmark() async {
-    setState(() {
-      isBookmarked = !isBookmarked;
-    });
-
-    try {
-      // Получаем userId текущего пользователя (замените на нужный метод получения userId)
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print('Ошибка: пользователь не авторизован');
-        return;
-      }
-      final String userId =
-          user.uid; // Пример, замените на ваш метод получения userId
-      String urId = userId + "_" + widget.documentId;
-
-      // Создаем или обновляем документ в коллекции user_rest
-      await FirebaseFirestore.instance
-          .collection('user_rest')
-          .doc(
-              urId) // Создаем уникальный ID документа на основе userId и restId
-          .set(
-              {
-            'userId': userId,
-            'restId': widget.documentId,
-            'isBookmarked': isBookmarked,
-          },
-              SetOptions(
-                  merge:
-                      true)); // Используем merge, чтобы обновлять существующий документ
-    } catch (e) {
-      print('Ошибка обновления закладки: $e');
-    }
-  }
 
   String getReviewWord(int count) {
     if (count % 10 == 1 && count % 100 != 11) {
@@ -108,13 +80,16 @@ class _ListMapItemState extends State<ListMapItem> {
         avgPrice: widget.avgPrice,
         avgReview: widget.avgReview,
         cntReviews: widget.cntReviews,
-        isToogle: isBookmarked);
+        isToogle: isBookmarked,
+        videoUrl: widget.videoUrl,
+        siteUrl: widget.siteUrl,
+        instaUrl: widget.instaUrl);
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+      padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
       child: GestureDetector(
         onTap:
             _showRestaurantDetails, // Добавляем вызов модального окна при нажатии
@@ -123,7 +98,7 @@ class _ListMapItemState extends State<ListMapItem> {
             children: [
               Container(
                 height: 140,
-                width: 120,
+                width: 140,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                   color: Colors.grey[200],
@@ -146,18 +121,27 @@ class _ListMapItemState extends State<ListMapItem> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 7),
-                      child: SizedBox(
-                        width: 190,
-                        height: 25,
-                        child: Text(
-                          widget.name,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: GoogleFonts.montserrat(
-                              color: const Color.fromARGB(255, 114, 114, 114),
-                              fontSize: 17,
-                              fontWeight: FontWeight.w500),
-                        ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 160.5,
+                            height: 25,
+                            child: Text(
+                              widget.name,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: GoogleFonts.montserrat(
+                                  color: const Color.fromARGB(255, 48, 48, 48),
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                          Icon(Icons.more_vert,
+                              color: Color.fromARGB(255, 220, 220, 220)),
+                          SizedBox(
+                            width: 10,
+                          )
+                        ],
                       ),
                     ),
                     SizedBox(
@@ -228,10 +212,10 @@ class _ListMapItemState extends State<ListMapItem> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(
-                                  Icons.airport_shuttle_outlined,
+                                const FaIcon(
+                                  FontAwesomeIcons.car,
                                   color: Color.fromARGB(255, 175, 175, 175),
-                                  size: 18,
+                                  size: 15,
                                 ),
                                 const SizedBox(
                                   width: 3,
@@ -272,18 +256,6 @@ class _ListMapItemState extends State<ListMapItem> {
                           ),
                           const SizedBox(
                             width: 38,
-                          ),
-                          GestureDetector(
-                            onTap:
-                                _toggleBookmark, // Добавляем onTap для переключения
-                            child: Icon(
-                              isBookmarked
-                                  ? Icons.bookmark
-                                  : Icons.bookmark_border_outlined,
-                              color: isBookmarked
-                                  ? const Color.fromARGB(255, 243, 145, 8)
-                                  : const Color.fromARGB(255, 135, 135, 139),
-                            ),
                           ),
                         ],
                       ),

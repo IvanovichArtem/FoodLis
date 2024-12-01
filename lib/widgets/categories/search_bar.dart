@@ -17,70 +17,70 @@ class _SearchInputState extends State<SearchInput> {
   List<Map<String, dynamic>> _searchResults = [];
 
   Future<void> _searchDatabase(String text) async {
-    // // Получаем все данные из коллекции 'restaraunts'
-    // final querySnapshot =
-    //     await FirebaseFirestore.instance.collection('restaraunts').get();
+    // Получаем все данные из коллекции 'restaraunts'
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('restaraunts').get();
 
-    // // Приводим введённый текст к нижнему регистру и убираем лишние пробелы
-    // final trimmedLowerText = text.trim().toLowerCase();
+    // Приводим введённый текст к нижнему регистру и убираем лишние пробелы
+    final trimmedLowerText = text.trim().toLowerCase();
 
-    // // Фильтруем данные на стороне клиента, приводя 'name' к нижнему регистру
-    // final filteredDocs = querySnapshot.docs.where((doc) {
-    //   final nameLower = doc['name'].toString().toLowerCase();
-    //   return nameLower.contains(trimmedLowerText);
-    // }).toList();
+    // Фильтруем данные на стороне клиента, приводя 'name' к нижнему регистру
+    final filteredDocs = querySnapshot.docs.where((doc) {
+      final nameLower = doc['name'].toString().toLowerCase();
+      return nameLower.contains(trimmedLowerText);
+    }).toList();
 
-    // // Перебираем отфильтрованные документы и получаем URL изображений
-    // final List<Map<String, dynamic>> searchResults = [];
-    // for (var doc in filteredDocs) {
-    //   final data = doc.data();
-    //   final imagePath = data['imageUrl']; // Извлекаем путь к изображению
+    // Перебираем отфильтрованные документы и получаем URL изображений
+    final List<Map<String, dynamic>> searchResults = [];
+    for (var doc in filteredDocs) {
+      final data = doc.data();
+      final imagePath = data['imageUrl']; // Извлекаем путь к изображению
 
-    //   // Получаем полный URL изображения из Firebase Storage
-    //   final imageUrl =
-    //       await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
+      // Получаем полный URL изображения из Firebase Storage
+      final imageUrl =
+          await FirebaseStorage.instance.ref(imagePath).getDownloadURL();
 
-    //   // Обновляем данные с правильной ссылкой на изображение и добавляем id документа
-    //   searchResults.add({
-    //     'documentId': doc.id, // Сохраняем id документа
-    //     ...data,
-    //     'imageUrl': imageUrl, // Заменяем путь на полный URL
-    //   });
-    // }
+      // Обновляем данные с правильной ссылкой на изображение и добавляем id документа
+      searchResults.add({
+        'id': doc.id, // Сохраняем id документа
+        ...data,
+        'isVisible': true,
+        'imageUrl': imageUrl, // Заменяем путь на полный URL
+      });
+    }
 
-    // // Обновляем состояние с результатами поиска
-    // setState(() {
-    //   _searchResults = searchResults;
-    // });
+    // Обновляем состояние с результатами поиска
+    setState(() {
+      _searchResults = searchResults;
+    });
   }
 
-  void _onSearchResultTap() {
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => MapScreen(
-    //       initialIndex: 1,
-    //       data: _searchResults,
-    //     ),
-    //   ),
-    // );
-    widget.onTap();
+  void _onSearchResultTap(List<Map<String, dynamic>> searchResults) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapScreen(
+          initialIndex: 1,
+          data: _searchResults,
+          isSearch: true,
+        ),
+      ),
+    );
   }
 
   void _handleSubmit() {
-    _onSearchResultTap();
-    // final searchText = _searchController.text;
-    // if (searchText.isNotEmpty) {
-    //   _searchDatabase(searchText).then((_) {
-    //     if (_searchResults.isNotEmpty) {
-    //       _onSearchResultTap(_searchResults.first);
-    //     } else {
-    //       ScaffoldMessenger.of(context).showSnackBar(
-    //         SnackBar(content: Text('По вашему запросу нет данных')),
-    //       );
-    //     }
-    //   });
-    // }
+    final searchText = _searchController.text;
+    if (searchText.isNotEmpty) {
+      _searchDatabase(searchText).then((_) {
+        if (_searchResults.isNotEmpty) {
+          _onSearchResultTap(_searchResults);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('По вашему запросу нет данных')),
+          );
+        }
+      });
+    }
   }
 
   @override

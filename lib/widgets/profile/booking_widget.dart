@@ -1,29 +1,150 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:food_lis/widgets/profile/popup_menu.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class BookingWidget extends StatefulWidget {
-  final String name;
-  final String address;
-  final DateTime datetime;
-  final String place;
-  final String imgUrl;
-
-  const BookingWidget(
-      {super.key,
-      required this.name,
-      required this.address,
-      required this.datetime,
-      required this.place,
-      required this.imgUrl});
+  const BookingWidget({super.key});
 
   @override
   State<BookingWidget> createState() => _BookingWidgetState();
 }
 
 class _BookingWidgetState extends State<BookingWidget> {
+  String name = '';
+  String address = '';
+  DateTime datetime = DateTime.now();
+  String place = '';
+  String imgUrl = '';
+  String time = "";
+  bool hasBooking = false; // Флаг для отслеживания наличия бронирования
+
+  @override
+  void initState() {
+    super.initState();
+    fetchBookingData();
+  }
+
+  Future<void> fetchBookingData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      String userId = user.uid; // Получаем userId текущего пользователя
+
+      // Получаем все бронирования для текущего пользователя
+      QuerySnapshot bookingsSnapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (bookingsSnapshot.docs.isNotEmpty) {
+        for (var doc in bookingsSnapshot.docs) {
+          var bookingData = doc.data() as Map<String, dynamic>;
+
+          String restId = bookingData['restId'];
+
+          // Преобразуем строку в DateTime, если selectedDate хранится как строка
+          String selectedDateStr =
+              bookingData['selectedDate']; // Формат "yyyy-MM-dd HH:mm:ss"
+          DateTime selectedDate =
+              DateTime.parse(selectedDateStr); // Преобразуем строку в DateTime
+          String selectedTime = bookingData[
+              'selectedTime']; // Ожидаем строку времени, например "18:00"
+
+          // Получаем текущую дату и время
+          DateTime now = DateTime.now();
+
+          // Проверяем каждый параметр отдельно
+          bool isDateInPast = selectedDate.year < now.year ||
+              (selectedDate.year == now.year &&
+                  selectedDate.month < now.month) ||
+              (selectedDate.year == now.year &&
+                  selectedDate.month == now.month &&
+                  selectedDate.day < now.day);
+
+          if (!isDateInPast) {
+            // Если дата не в прошлом, проверяем время
+            List<String> selectedTimeParts = selectedTime
+                .split(':'); // Разбиваем строку времени "18:00" на ["18", "00"]
+            int selectedHour =
+                int.parse(selectedTimeParts[0]); // Часы из времени
+            int selectedMinute =
+                int.parse(selectedTimeParts[1]); // Минуты из времени
+
+            bool isTimeInPast = selectedDate.year == now.year &&
+                selectedDate.month == now.month &&
+                selectedDate.day == now.day &&
+                (selectedHour < now.hour ||
+                    (selectedHour == now.hour && selectedMinute < now.minute));
+
+            // Если время в прошлом, то пропускаем это бронирование
+            if (isTimeInPast) {
+              continue;
+            }
+          } else {
+            // Если дата в прошлом, пропускаем это бронирование
+            continue;
+          }
+
+          // Если дата и время валидные, обрабатываем данные
+          List<bool> selectedPlace =
+              List<bool>.from(bookingData['selectedPlace']);
+
+          // Определяем место по выбранным параметрам
+          place = selectedPlace[0]
+              ? 'Терасса'
+              : selectedPlace[1]
+                  ? 'У окна'
+                  : 'У бара';
+
+          // Получаем данные о ресторане
+          DocumentSnapshot restaurantSnapshot = await FirebaseFirestore.instance
+              .collection('restaraunts')
+              .doc(restId)
+              .get();
+
+          if (restaurantSnapshot.exists) {
+            var restaurantData =
+                restaurantSnapshot.data() as Map<String, dynamic>;
+            name = restaurantData['name'];
+            address = restaurantData['address'];
+
+            // Получаем URL картинки из Firebase Storage
+            String imageUrl = restaurantData['imageUrl'];
+            Reference storageRef =
+                FirebaseStorage.instance.ref().child(imageUrl);
+            String downloadUrl = await storageRef.getDownloadURL();
+
+            setState(() {
+              imgUrl = downloadUrl;
+              datetime = selectedDate;
+              time = selectedTime;
+              hasBooking = true; // Устанавливаем флаг, что бронирование найдено
+            });
+
+            // Выходим из цикла, так как нашли первое подходящее бронирование
+            return;
+          }
+        }
+
+        // Если ни одно бронирование не подошло
+        setState(() {
+          hasBooking = false;
+        });
+      } else {
+        // Если бронирования отсутствуют
+        setState(() {
+          hasBooking = false;
+        });
+      }
+    } else {
+      // Пользователь не авторизован
+      print("User not logged in");
+    }
+  }
+
   Map formatDateTime(DateTime dateTime) {
-    // Массивы для дней и месяцев на русском
     const List<String> months = [
       'января',
       'февраля',
@@ -41,7 +162,6 @@ class _BookingWidgetState extends State<BookingWidget> {
 
     const List<String> weekdays = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
 
-    // Получаем компоненты даты
     String day = dateTime.day.toString();
     String month = months[dateTime.month - 1];
     String weekDay = weekdays[dateTime.weekday - 1];
@@ -58,199 +178,165 @@ class _BookingWidgetState extends State<BookingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Map formatedDateMap = formatDateTime(widget.datetime);
+    Map formatedDateMap = formatDateTime(datetime);
 
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Column(
-        children: [
-          // Адрес и share
-          Padding(
-            padding: const EdgeInsets.fromLTRB(17, 0, 18, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.name,
-                  style: GoogleFonts.montserrat(
-                      color: const Color.fromARGB(255, 114, 114, 114),
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500),
-                ),
-                const IconPopupMenu(
-                  menuItems: [
-                    "Подробнее",
-                    "Поделиться записью",
-                    "Отменить бронь"
-                  ],
-                )
-              ],
+    return hasBooking
+        ? Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(10)),
             ),
-          ),
-          // Разделитель
-          const Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-            child: Divider(
-              height: 1,
-              color: Color.fromARGB(255, 235, 235, 235),
-              indent: 15,
-              endIndent: 15,
-            ),
-          ),
-          // Информация
-          Padding(
-            padding: const EdgeInsets.fromLTRB(17, 12, 0, 0),
-            child: Row(
+            child: Column(
               children: [
-                Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        widget.imgUrl,
-                        height: 100,
-                        width: 100,
-                        fit: BoxFit.cover,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(17, 0, 18, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        name,
+                        style: GoogleFonts.montserrat(
+                            color: const Color.fromARGB(255, 114, 114, 114),
+                            fontSize: 17,
+                            fontWeight: FontWeight.w500),
                       ),
-                    )
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(
-                  width: 10,
+                const Divider(
+                    height: 1,
+                    color: Color.fromARGB(255, 235, 235, 235),
+                    indent: 15,
+                    endIndent: 15),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(17, 12, 0, 0),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          imgUrl,
+                          height: 100,
+                          width: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on_outlined,
+                                  color: Color.fromARGB(255, 243, 175, 79),
+                                  size: 22),
+                              const SizedBox(width: 7),
+                              SizedBox(
+                                width: 180,
+                                child: Text(
+                                  address,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    color: const Color.fromARGB(
+                                        255, 138, 138, 142),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_today_outlined,
+                                  color: Color.fromARGB(255, 243, 175, 79),
+                                  size: 20),
+                              const SizedBox(width: 7),
+                              Text(
+                                '${formatedDateMap['day']} ${formatedDateMap['month']}, ${formatedDateMap['weekDay']}',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color:
+                                      const Color.fromARGB(255, 138, 138, 142),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.access_time,
+                                  color: Color.fromARGB(255, 243, 175, 79),
+                                  size: 20),
+                              const SizedBox(width: 7),
+                              Text(
+                                time,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color:
+                                      const Color.fromARGB(255, 138, 138, 142),
+                                ),
+                              ),
+                              const SizedBox(width: 7),
+                              const Icon(Icons.table_restaurant,
+                                  color: Color.fromARGB(255, 243, 175, 79)),
+                              const SizedBox(width: 7),
+                              Text(
+                                place,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color:
+                                      const Color.fromARGB(255, 138, 138, 142),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    //адрес
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          color: Color.fromARGB(255, 243, 175, 79),
-                          size: 22,
-                        ),
-                        const SizedBox(
-                          width: 7,
-                        ),
-                        SizedBox(
-                          width: 180,
-                          child: Text(
-                            widget.address,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: const Color.fromARGB(255, 138, 138, 142),
-                            ),
-                            softWrap: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    //дата
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_outlined,
-                          color: Color.fromARGB(255, 243, 175, 79),
-                          size: 20,
-                        ),
-                        const SizedBox(
-                          width: 7,
-                        ),
-                        Text(
-                          formatedDateMap['day'] +
-                              " " +
-                              formatedDateMap['month'] +
-                              ", " +
-                              formatedDateMap['weekDay'],
-                          style: GoogleFonts.montserrat(
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+                  child: ElevatedButton(
+                    onPressed: () => {},
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            const Color.fromARGB(255, 244, 160, 15)),
+                        shape: MaterialStateProperty
+                            .all<RoundedRectangleBorder>(RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10))))),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        "Построить маршрут",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(
+                            color: Colors.white,
                             fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: const Color.fromARGB(255, 138, 138, 142),
-                          ),
-                        )
-                      ],
+                            fontWeight: FontWeight.w600),
+                      ),
                     ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    //время и место
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          color: Color.fromARGB(255, 243, 175, 79),
-                          size: 20,
-                        ),
-                        const SizedBox(
-                          width: 7,
-                        ),
-                        Text(
-                          formatedDateMap['time'],
-                          style: GoogleFonts.montserrat(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: const Color.fromARGB(255, 138, 138, 142),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 7,
-                        ),
-                        const Icon(
-                          Icons.table_restaurant,
-                          color: Color.fromARGB(255, 243, 175, 79),
-                        ),
-                        const SizedBox(
-                          width: 7,
-                        ),
-                        Text(
-                          widget.place,
-                          style: GoogleFonts.montserrat(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: const Color.fromARGB(255, 138, 138, 142),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 )
               ],
             ),
-          ),
-          // Кнопка
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-            child: ElevatedButton(
-                onPressed: () => {},
-                style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all<Color>(
-                        Color.fromARGB(255, 244, 160, 15)),
-                    shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))))),
-                child: SizedBox(
-                  width: double.infinity, // Займет всю доступную шир ину
-                  child: Text(
-                    "Построить маршрут",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.montserrat(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600),
-                  ),
-                )),
           )
-        ],
-      ),
-    );
+        : Center(
+            child: Text(
+              "У вас нет бронирований",
+              style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey),
+            ),
+          );
   }
 }

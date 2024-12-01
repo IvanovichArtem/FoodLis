@@ -2,11 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:food_lis/widgets/kitchen_modal/video_player.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BlogerReviews extends StatelessWidget {
+  final String siteUrl;
   final String name;
+  final String videoUrl;
+  final String instaUrl;
   static const Color greyMedium = Color.fromARGB(255, 114, 114, 114);
-  const BlogerReviews({super.key, required this.name});
+
+  const BlogerReviews(
+      {super.key,
+      required this.siteUrl,
+      required this.videoUrl,
+      required this.instaUrl,
+      required this.name});
 
   @override
   Widget build(BuildContext context) {
@@ -37,37 +47,67 @@ class BlogerReviews extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const FaIcon(FontAwesomeIcons.instagram, color: greyMedium),
+                // Instagram Button
+                InkWell(
+                  onTap: () {
+                    // Открытие Instagram URL
+                    launch(
+                        instaUrl); // используйте `launch` из пакета `url_launcher`
+                  },
+                  child: const FaIcon(
+                    FontAwesomeIcons.instagram,
+                    color: greyMedium,
+                  ),
+                ),
                 const SizedBox(
                   width: 5,
                 ),
-                Text(
-                  name,
-                  style: GoogleFonts.montserrat(
+                // Instagram Text
+                Expanded(
+                  child: Text(
+                    name,
+                    style: GoogleFonts.montserrat(
                       color: greyMedium,
                       fontSize: 14,
-                      fontWeight: FontWeight.w400),
+                      fontWeight: FontWeight.w400,
+                    ),
+                    overflow: TextOverflow.ellipsis, // Для текста с многоточием
+                  ),
                 ),
                 const SizedBox(
                   width: 12,
                 ),
-                const Icon(Icons.language, color: greyMedium),
+                // Website Button
+                InkWell(
+                  onTap: () {
+                    // Открытие Website URL
+                    launch(
+                        siteUrl); // используйте `launch` из пакета `url_launcher`
+                  },
+                  child: const Icon(
+                    Icons.language,
+                    color: greyMedium,
+                  ),
+                ),
                 const SizedBox(
                   width: 5,
                 ),
+                // Website Text
                 Text(
                   '$name.by',
                   style: GoogleFonts.montserrat(
-                      color: greyMedium,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400),
+                    color: greyMedium,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  overflow: TextOverflow.ellipsis, // Для текста с многоточием
                 ),
               ],
             ),
           ),
-          const YoutubePlayerWidget(
-              videoUrl: 'https://youtu.be/Cs4w7MZuBnM?si=wjPDA98p-BbJfk01'),
+          YoutubePlayerWidget(videoUrl: videoUrl),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             child: Text(

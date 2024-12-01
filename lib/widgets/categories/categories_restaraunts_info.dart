@@ -39,24 +39,29 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
   Future<void> fetchDishData() async {
     try {
       final querySnapshot =
-          await FirebaseFirestore.instance.collection('dishes').get();
+          await FirebaseFirestore.instance.collection('rest_dishes').get();
 
       for (var doc in querySnapshot.docs) {
-        final data = doc.data();
-        final storagePath = data['imageUrl'];
+        try {
+          final data = doc.data();
+          final storagePath = data['imageUrl'];
 
-        final downloadUrl =
-            await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
+          final downloadUrl =
+              await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
 
-        // Проверяем, существует ли уже такое блюдо в списке
-        if (!dishData.any((dish) => dish['name'] == data['name'])) {
-          dishData.add({
-            'name': data['name'],
-            'restaraunt': data['restaraunt'],
-            'rating': data['rating'],
-            'review_count': data['reviewCount'],
-            'imageUrl': downloadUrl,
-          });
+          // Проверяем, существует ли уже такое блюдо в списке
+          if (!dishData.any((dish) => dish['name'] == data['name'])) {
+            dishData.add({
+              'name': data['name'],
+              'restaraunt': data['restaraunt'],
+              'rating': data['rating'],
+              'review_count': data['reviewCount'],
+              'imageUrl': downloadUrl,
+            });
+          }
+        } catch (e) {
+          // Логируем ошибку для конкретного документа, но продолжаем выполнение
+          print('Error processing document ${doc.id}: $e');
         }
       }
 
@@ -74,7 +79,9 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
         dishData = dishData.sublist(0, 5);
       }
 
-      setState(() {});
+      setState(() {
+        dishData = dishData;
+      });
     } catch (e) {
       print('Error fetching dish data: $e');
     }
@@ -165,7 +172,7 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                   return Row(
                     children: [
                       RestarauntCard(
-                        docId: restaurant['restId'],
+                        docId: restaurant['id'],
                         name: restaurant['name'],
                         restarauntType: restaurant['restarauntType'],
                         avgReview: restaurant['avgReview'].toDouble(),
@@ -175,6 +182,9 @@ class _PersonalizedInfoWidgetState extends State<PersonalizedInfoWidget> {
                         timeByWalk: 5,
                         avgPrice: restaurant['avgPrice'],
                         isToogle: restaurant['isToogle'],
+                        videoUrl: restaurant['videoUrl'],
+                        instaUrl: restaurant['instaUrl'],
+                        siteUrl: restaurant['siteUrl'],
                       ),
                       if (index < sortedRestaurants.length - 1)
                         const SizedBox(width: 8),

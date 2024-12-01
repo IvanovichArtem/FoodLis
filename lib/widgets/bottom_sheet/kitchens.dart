@@ -48,8 +48,10 @@ class KitchensFilterWidgetState extends State<KitchensFilterWidget> {
             shrinkWrap: true,
             crossAxisSpacing: 0,
             mainAxisSpacing: 0,
+            childAspectRatio: 1.13,
             physics: const NeverScrollableScrollPhysics(),
-            children: List.generate(widget.kitchenData.length, (index) {
+            children: List.generate(widget.kitchenData.length, growable: false,
+                (index) {
               return KitchenItem(
                 isSelected: kitchenItems[index].isSelected,
                 name: kitchenItems[index].name,
@@ -125,23 +127,44 @@ class KitchenItem extends StatelessWidget {
       },
       child: Column(
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+          Container(
             decoration: BoxDecoration(
               border: Border.all(
-                color: isSelected
-                    ? const Color.fromARGB(255, 243, 175, 79)
-                    : Colors.transparent,
-                width: 3.0,
-              ),
-              borderRadius: BorderRadius.circular(8),
+                  color: isSelected
+                      ? Color.fromARGB(255, 244, 160, 15)
+                      : Colors.transparent,
+                  width: 3),
+              borderRadius:
+                  BorderRadius.circular(10), // Угол рамки немного больше
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                imageUrl,
-                width: width,
-                height: height,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                    top: BorderSide(
+                        color: isSelected ? Colors.white : Colors.transparent,
+                        width: 1),
+                    bottom: BorderSide(
+                        color: isSelected ? Colors.white : Colors.transparent,
+                        width: 1),
+                    left: BorderSide(
+                        color: isSelected ? Colors.white : Colors.transparent,
+                        width: 3),
+                    right: BorderSide(
+                        color: isSelected ? Colors.white : Colors.transparent,
+                        width: 3)),
+                borderRadius:
+                    BorderRadius.circular(10), // Угол рамки немного больше
+              ),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    imageUrl,
+                    width: width,
+                    height: height,
+                  ),
+                ),
               ),
             ),
           ),
@@ -154,7 +177,7 @@ class KitchenItem extends StatelessWidget {
               maxLines: 1,
               style: GoogleFonts.montserrat(
                 color: const Color.fromARGB(255, 48, 48, 48),
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -168,9 +191,13 @@ class KitchenItem extends StatelessWidget {
 class KitchensFilterWidget2 extends StatefulWidget {
   final List<Map<String, dynamic>> kitchenData;
   final int itemInRow;
+  final int distBetween;
 
   const KitchensFilterWidget2(
-      {super.key, required this.kitchenData, required this.itemInRow});
+      {super.key,
+      required this.kitchenData,
+      required this.itemInRow,
+      this.distBetween = 0});
 
   @override
   State<KitchensFilterWidget2> createState() => KitchensFilterWidget2State();
@@ -210,7 +237,7 @@ class KitchensFilterWidget2State extends State<KitchensFilterWidget2> {
           GridView.count(
             crossAxisCount: widget.itemInRow,
             shrinkWrap: true,
-            crossAxisSpacing: 0,
+            crossAxisSpacing: widget.distBetween.toDouble(),
             mainAxisSpacing: 0,
             physics: const NeverScrollableScrollPhysics(),
             children: List.generate(widget.kitchenData.length, (index) {

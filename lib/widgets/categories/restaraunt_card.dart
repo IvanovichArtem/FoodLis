@@ -14,6 +14,9 @@ class RestarauntCard extends StatefulWidget {
   final int timeByWalk;
   final int avgPrice;
   final bool isToogle;
+  final String videoUrl;
+  final String siteUrl;
+  final String instaUrl;
 
   const RestarauntCard({
     super.key,
@@ -27,6 +30,9 @@ class RestarauntCard extends StatefulWidget {
     required this.timeByWalk,
     required this.avgPrice,
     required this.isToogle,
+    required this.videoUrl,
+    required this.siteUrl,
+    required this.instaUrl,
   });
 
   @override
@@ -60,7 +66,10 @@ class _RestarauntCardState extends State<RestarauntCard> {
             cntReviews: widget.cntReviews,
             timeByWalk: 5,
             avgPrice: widget.avgPrice,
-            isToogle: false);
+            isToogle: false,
+            videoUrl: widget.videoUrl,
+            instaUrl: widget.instaUrl,
+            siteUrl: widget.siteUrl);
       },
       child: Container(
         width: 140,

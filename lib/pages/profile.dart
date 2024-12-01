@@ -46,13 +46,7 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
             ),
-            BookingWidget(
-              name: "HookahPlace Sportivnaya",
-              address: "ул. Дунина-Марцинкевича д. 3, Минск",
-              datetime: DateTime(2024, 8, 25, 18, 0),
-              place: "У окна",
-              imgUrl: 'assets/images/booking/hookahplace.jpg',
-            ),
+            BookingWidget(),
             Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 0, 12),
                 child: Row(children: [

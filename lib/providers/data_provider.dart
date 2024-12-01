@@ -58,7 +58,7 @@ class DataProvider extends ChangeNotifier {
         // Добавляем URL изображения и статус закладки
         restaurantEntry['imageUrl'] = downloadUrl;
         restaurantEntry['isToogle'] = isToogle;
-        restaurantEntry['restId'] = doc.id;
+        restaurantEntry['id'] = doc.id;
 
         _restaurantData.add(restaurantEntry);
       }

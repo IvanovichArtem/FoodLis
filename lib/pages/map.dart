@@ -20,11 +20,13 @@ import 'dart:math';
 class MapScreen extends StatefulWidget {
   final int initialIndex;
   final List<Map<String, dynamic>> data;
+  final bool isSearch;
 
   const MapScreen({
     super.key,
     required this.initialIndex,
     required this.data,
+    required this.isSearch,
   });
 
   @override
@@ -45,10 +47,41 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _getCurrentLocation();
-    if (widget.data.isEmpty) {
+    if (widget.data.isEmpty & !widget.isSearch) {
       _fetchRestaurants();
+    } else {
+      restarauntData = widget.data;
+      _drawRestOnSearch();
     }
     _currentIndex = widget.initialIndex;
+  }
+
+  Future<void> _drawRestOnSearch() async {
+    for (var doc in restarauntData) {
+      try {
+        final data = doc;
+
+        double latitude = data['location'].latitude;
+        double longitude = data['location'].longitude;
+        String name = data['name'];
+        double avgReview = data['avgReview'];
+        int avgPrice = data['avgPrice'];
+
+        if (data['isVisible']) {
+          await _addRestaurantMarker(
+              latitude,
+              longitude,
+              name,
+              // Добавляем маркер на карту
+              avgReview.toString(),
+              avgPrice.toString(),
+              data['id']);
+        }
+      } catch (e) {
+        print('Ошибка при обработке документа: $e');
+        continue;
+      }
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -176,6 +209,8 @@ class _MapScreenState extends State<MapScreen> {
           'features': features,
           'restrictions': restrictions,
           'videoUrl': videoUrl,
+          'siteUrl': data['siteUrl'],
+          'instaUrl': data['instaUrl'],
           'restarauntType': restarauntType,
           'isToogle': isToogle,
           'isVisible': true
@@ -192,6 +227,11 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _showAll({bool needState = true}) {
+    if (widget.isSearch) {
+      Navigator.pop(context);
+      return;
+    }
+
     if (needState) {
       setState(() {
         for (var rest in restarauntData) {
@@ -227,8 +267,35 @@ class _MapScreenState extends State<MapScreen> {
           restarauntData[i]['isVisible'] = true;
         }
       }
-      _currentIndex = 1;
     });
+
+    if (_currentIndex == 1) {
+      return; // Ничего не делаем, если текущий индекс равен 1
+    } else if (_currentIndex == 0) {
+      var restaurant = restarauntData.last;
+      floatRest = {
+        'id': restaurant['id'],
+        'name': restaurant['name'],
+        'avgReview': restaurant['avgReview'],
+        'avgPrice': restaurant['avgPrice'],
+        'latitude': restaurant['latitude'],
+        'longitude': restaurant['longitude'],
+        'imageUrl': restaurant['imageUrl'],
+        'cntReviews': restaurant['cntReviews'],
+        'deliveryInfo': restaurant['deliveryInfo'],
+        'startTime': restaurant['startTime'],
+        'endTime': restaurant['endTime'],
+        'features': restaurant['features'],
+        'restrictions': restaurant['restrictions'],
+        'videoUrl': restaurant['videoUrl'],
+        'restarauntType': restaurant['restarauntType'],
+        'isToogle': restaurant['isToogle'],
+        'siteUrl': restaurant['siteUrl'],
+        'instaUrl': restaurant['instaUrl']
+      };
+      _updateMarkerIcon(
+          restaurant['id'], 'assets/icons/orange_location.png', 0.4);
+    }
   }
 
   void _showBest() {
@@ -239,8 +306,34 @@ class _MapScreenState extends State<MapScreen> {
         // Сравниваем значения avgReview для двух элементов
         return b['avgReview'].compareTo(a['avgReview']);
       });
-      _currentIndex = 1;
     });
+    if (_currentIndex == 1) {
+      return; // Ничего не делаем, если текущий индекс равен 1
+    } else if (_currentIndex == 0) {
+      var restaurant = restarauntData.first;
+      floatRest = {
+        'id': restaurant['id'],
+        'name': restaurant['name'],
+        'avgReview': restaurant['avgReview'],
+        'avgPrice': restaurant['avgPrice'],
+        'latitude': restaurant['latitude'],
+        'longitude': restaurant['longitude'],
+        'imageUrl': restaurant['imageUrl'],
+        'cntReviews': restaurant['cntReviews'],
+        'deliveryInfo': restaurant['deliveryInfo'],
+        'startTime': restaurant['startTime'],
+        'endTime': restaurant['endTime'],
+        'features': restaurant['features'],
+        'restrictions': restaurant['restrictions'],
+        'videoUrl': restaurant['videoUrl'],
+        'restarauntType': restaurant['restarauntType'],
+        'isToogle': restaurant['isToogle'],
+        'siteUrl': restaurant['siteUrl'],
+        'instaUrl': restaurant['instaUrl']
+      };
+      _updateMarkerIcon(
+          restaurant['id'], 'assets/icons/orange_location.png', 0.4);
+    }
   }
 
   void _showFilter(List filteredIds) {
@@ -383,6 +476,8 @@ class _MapScreenState extends State<MapScreen> {
             'videoUrl': restaurant['videoUrl'],
             'restarauntType': restaurant['restarauntType'],
             'isToogle': restaurant['isToogle'],
+            'siteUrl': restaurant['siteUrl'],
+            'instaUrl': restaurant['instaUrl']
           };
         } else {
           floatRest = {};
@@ -531,6 +626,7 @@ class _MapScreenState extends State<MapScreen> {
                                   item['cntReviews'] == null ||
                                   item['avgPrice'] == null ||
                                   item['id'] == null ||
+                                  item['isToogle'] is String ||
                                   !item['isVisible'] ||
                                   (_searchResults.isNotEmpty &&
                                       !_searchResults.contains(item['id']))) {
@@ -545,13 +641,16 @@ class _MapScreenState extends State<MapScreen> {
                                     imageUrl: item['imageUrl'],
                                     name: item['name'],
                                     restarauntType: item['restarauntType'],
-                                    avgReview: item['avgReview'],
+                                    avgReview: item['avgReview'].toDouble(),
                                     cntReviews: item['cntReviews'],
                                     timeByWalk: 5,
                                     avgPrice: item['avgPrice'],
-                                    isToogle: item['isToogle'],
+                                    isToogle: item['isToogle'] ?? false,
                                     endTime: item['endTime'],
                                     documentId: item['id'],
+                                    videoUrl: item['videoUrl'],
+                                    instaUrl: item['instaUrl'],
+                                    siteUrl: item['siteUrl'],
                                   ),
                                   SizedBox(
                                     height: 6,
@@ -560,7 +659,7 @@ class _MapScreenState extends State<MapScreen> {
                                     height: 1.0,
                                     indent: 16,
                                     endIndent: 16,
-                                    color: Colors.grey,
+                                    color: Color.fromARGB(255, 210, 210, 210),
                                   ),
                                   SizedBox(
                                     height: 8,
@@ -587,166 +686,211 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     )
                   : SizedBox(),
-              ((_activeMarkerId != "") & (_currentIndex != 1))
-                  ? Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 65),
-                        child: GestureDetector(
-                          onTap: () => {
-                            //аава
-                            showRestBottomSheet(context,
-                                restId: floatRest['id'],
-                                name: floatRest['name'],
-                                imageUrl: floatRest['imageUrl'],
-                                restarauntType: floatRest['restarauntType'],
-                                timeByWalk: 5,
-                                endTime: floatRest['endTime'],
-                                avgPrice: floatRest['avgPrice'],
-                                avgReview: floatRest['avgReview'],
-                                cntReviews: floatRest['cntReviews'],
-                                isToogle: floatRest['isToogle'])
-                          },
-                          child: Container(
-                            width: 313,
-                            height: 120,
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10)),
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      floatRest['imageUrl'],
-                                      width: 120,
-                                      height: 100,
-                                      fit: BoxFit.cover,
+              (_activeMarkerId != "" && _currentIndex != 1)
+                  ? Stack(
+                      children: [
+                        AnimatedPositioned(
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          bottom: _activeMarkerId != "" && _currentIndex != 1
+                              ? 65
+                              : -200, // Смещение за пределы экрана
+                          left: 0,
+                          right: 0,
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: GestureDetector(
+                              onTap: () => {
+                                showRestBottomSheet(
+                                  context,
+                                  restId: floatRest['id'],
+                                  name: floatRest['name'],
+                                  imageUrl: floatRest['imageUrl'],
+                                  restarauntType: floatRest['restarauntType'],
+                                  timeByWalk: 5,
+                                  endTime: floatRest['endTime'],
+                                  avgPrice: floatRest['avgPrice'],
+                                  avgReview: floatRest['avgReview'],
+                                  cntReviews: floatRest['cntReviews'],
+                                  isToogle: floatRest['isToogle'],
+                                  videoUrl: floatRest['videoUrl'],
+                                  siteUrl: floatRest['siteUrl'],
+                                  instaUrl: floatRest['instaUrl'],
+                                )
+                              },
+                              child: Container(
+                                width: 313,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: Color.fromARGB(255, 244, 160, 15),
+                                      width: 5,
                                     ),
                                   ),
-                                  Padding(
-                                    padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                    child: Column(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              9, 8, 0, 0),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: 130,
-                                                child: Text(
-                                                  floatRest['name']
-                                                      .toString()
-                                                      .trim(),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: GoogleFonts.montserrat(
-                                                      color: Color.fromARGB(
-                                                          255, 48, 48, 48),
-                                                      fontSize: 17,
-                                                      fontWeight:
-                                                          FontWeight.w500),
-                                                ),
-                                              ),
-                                              Text(
-                                                  floatRest['avgReview']
-                                                      .toString()
-                                                      .trim(),
-                                                  style: GoogleFonts.montserrat(
-                                                      color: Color.fromARGB(
-                                                          255, 48, 48, 48),
-                                                      fontSize: 17,
-                                                      fontWeight:
-                                                          FontWeight.w500))
-                                            ],
-                                          ),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 10),
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          floatRest['imageUrl'],
+                                          width: 120,
+                                          height: 100,
+                                          fit: BoxFit.cover,
                                         ),
-                                        Row(
+                                      ),
+                                      Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                        child: Column(
                                           children: [
                                             Padding(
                                               padding:
                                                   const EdgeInsets.fromLTRB(
-                                                      11, 0, 0, 0),
-                                              child: Container(
-                                                width: 120,
-                                                height: 30,
-                                                child: Text(
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  floatRest['restarauntType']
-                                                      .toString()
-                                                      .trim(),
-                                                  textAlign: TextAlign.left,
-                                                  style: GoogleFonts.montserrat(
+                                                      9, 8, 0, 0),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 130,
+                                                    child: Text(
+                                                      floatRest['name']
+                                                          .toString()
+                                                          .trim(),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        color: Color.fromARGB(
+                                                            255, 48, 48, 48),
+                                                        fontSize: 17,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    floatRest['avgReview']
+                                                        .toString()
+                                                        .trim(),
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      color: Color.fromARGB(
+                                                          255, 48, 48, 48),
+                                                      fontSize: 17,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                          11, 0, 0, 0),
+                                                  child: Container(
+                                                    width: 120,
+                                                    height: 30,
+                                                    child: Text(
+                                                      maxLines: 2,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      floatRest[
+                                                              'restarauntType']
+                                                          .toString()
+                                                          .trim(),
+                                                      textAlign: TextAlign.left,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        color: Color.fromARGB(
+                                                            255, 114, 114, 114),
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                          12, 0, 0, 7),
+                                                  child: Text(
+                                                    "(${floatRest['cntReviews'].toString()})"
+                                                        .trim(),
+                                                    style:
+                                                        GoogleFonts.montserrat(
                                                       color: Color.fromARGB(
                                                           255, 114, 114, 114),
                                                       fontWeight:
                                                           FontWeight.w400,
-                                                      fontSize: 14),
-                                                ),
-                                              ),
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
                                             ),
                                             Padding(
                                               padding:
                                                   const EdgeInsets.fromLTRB(
-                                                      12, 0, 0, 7),
-                                              child: Text(
-                                                "(${floatRest['cntReviews'].toString()})"
-                                                    .trim(),
-                                                style: GoogleFonts.montserrat(
+                                                      0, 15, 0, 0),
+                                              child: Row(
+                                                children: [
+                                                  const FaIcon(
+                                                    FontAwesomeIcons.car,
+                                                    size: 14,
                                                     color: Color.fromARGB(
-                                                        255, 114, 114, 114),
-                                                    fontWeight: FontWeight.w400,
-                                                    fontSize: 12),
+                                                        255, 193, 193, 193),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    floatRest['travelTime'] ??
+                                                        "5 мин",
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      color:
+                                                          const Color.fromARGB(
+                                                              255,
+                                                              193,
+                                                              193,
+                                                              193),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 20),
+                                                  Text(
+                                                    "${floatRest['avgPrice']} Br",
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      color:
+                                                          const Color.fromARGB(
+                                                              255,
+                                                              193,
+                                                              193,
+                                                              193),
+                                                    ),
+                                                  )
+                                                ],
                                               ),
                                             )
                                           ],
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              0, 15, 0, 0),
-                                          child: Row(
-                                            children: [
-                                              const FaIcon(
-                                                FontAwesomeIcons.car,
-                                                size: 14,
-                                                color: Color.fromARGB(
-                                                    255, 193, 193, 193),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                floatRest['travelTime'] ??
-                                                    "5 мин",
-                                                style: GoogleFonts.montserrat(
-                                                  color: const Color.fromARGB(
-                                                      255, 193, 193, 193),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 20),
-                                              Text(
-                                                "${floatRest['avgPrice']} Br",
-                                                style: GoogleFonts.montserrat(
-                                                  color: const Color.fromARGB(
-                                                      255, 193, 193, 193),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  )
-                                ],
+                                      )
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     )
                   : SizedBox(),
               Align(
@@ -834,7 +978,7 @@ class _MapAppBarState extends State<MapAppBar> {
       surfaceTintColor: Colors.white,
       automaticallyImplyLeading: true,
       leading: IconButton(
-        icon: Icon(Icons.refresh_outlined),
+        icon: Icon(Icons.arrow_back),
         onPressed: () => {widget.onButtonPressed()},
         color: const Color.fromARGB(255, 48, 48, 48),
       ),
@@ -861,7 +1005,7 @@ class _MapAppBarState extends State<MapAppBar> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    showCustomBottomSheet(context, widget.showFilter);
+                    showCustomBottomSheet(context, widget.showFilter, false);
                   },
                   child: Container(
                     width: 34,
@@ -896,10 +1040,10 @@ class _MapAppBarState extends State<MapAppBar> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          FaIcon(
-                            FontAwesomeIcons.tag,
+                          SvgPicture.asset(
+                            'assets/svg/discount.svg',
                             color: Color.fromARGB(255, 48, 48, 48),
-                            size: 16,
+                            // size: 16,
                           ),
                           SizedBox(
                             width: 5,
@@ -970,11 +1114,8 @@ class _MapAppBarState extends State<MapAppBar> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          FaIcon(
-                            FontAwesomeIcons.utensils,
-                            color: Color.fromARGB(255, 48, 48, 48),
-                            size: 16,
-                          ),
+                          SvgPicture.asset('assets/svg/kitchen.svg',
+                              color: Color.fromARGB(255, 48, 48, 48)),
                           SizedBox(
                             width: 5,
                           ),
