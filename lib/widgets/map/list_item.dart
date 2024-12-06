@@ -95,10 +95,11 @@ class _ListMapItemState extends State<ListMapItem> {
             _showRestaurantDetails, // Добавляем вызов модального окна при нажатии
         child: Container(
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                height: 140,
-                width: 140,
+                height: 124,
+                width: 123,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
                   color: Colors.grey[200],
@@ -115,13 +116,14 @@ class _ListMapItemState extends State<ListMapItem> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                padding: const EdgeInsets.fromLTRB(10, 0, 8, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 7),
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           SizedBox(
                             width: 160.5,
@@ -139,13 +141,16 @@ class _ListMapItemState extends State<ListMapItem> {
                           Icon(Icons.more_vert,
                               color: Color.fromARGB(255, 220, 220, 220)),
                           SizedBox(
-                            width: 10,
+                            width: 7,
                           )
                         ],
                       ),
                     ),
                     SizedBox(
-                      height: 45,
+                      height: 8,
+                    ),
+                    SizedBox(
+                      height: 25,
                       width: 190,
                       child: Text(widget.restarauntType,
                           style: GoogleFonts.montserrat(
@@ -153,8 +158,8 @@ class _ListMapItemState extends State<ListMapItem> {
                               fontSize: 14,
                               fontWeight: FontWeight.w400)),
                     ),
-                    const SizedBox(
-                      height: 7,
+                    SizedBox(
+                      height: 8,
                     ),
                     Row(
                       children: [
@@ -197,8 +202,11 @@ class _ListMapItemState extends State<ListMapItem> {
                         ),
                       ],
                     ),
+                    SizedBox(
+                      height: 8,
+                    ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 7, 0, 5),
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                       child: Row(
                         children: [
                           Container(
@@ -206,7 +214,7 @@ class _ListMapItemState extends State<ListMapItem> {
                             height: 30,
                             alignment: Alignment.center,
                             decoration: const BoxDecoration(
-                                color: Color.fromARGB(255, 234, 234, 234),
+                                color: Color.fromARGB(255, 247, 247, 247),
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(10))),
                             child: Row(
@@ -238,7 +246,7 @@ class _ListMapItemState extends State<ListMapItem> {
                             height: 30,
                             alignment: Alignment.center,
                             decoration: const BoxDecoration(
-                                color: Color.fromARGB(255, 234, 234, 234),
+                                color: Color.fromARGB(255, 247, 247, 247),
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(10))),
                             child: Row(

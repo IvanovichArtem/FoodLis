@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:food_lis/notifiers/booking_notifier.dart';
 
 class BookingWidget extends StatefulWidget {
   const BookingWidget({super.key});
@@ -23,6 +24,17 @@ class _BookingWidgetState extends State<BookingWidget> {
   @override
   void initState() {
     super.initState();
+
+    // Подписка на изменения bookingUpdatedNotifier
+    bookingUpdatedNotifier.addListener(() {
+      if (bookingUpdatedNotifier.value) {
+        // Если уведомление о бронировании пришло, обновляем данные
+        fetchBookingData();
+        // Сбрасываем состояние, чтобы обработать только одно изменение
+        bookingUpdatedNotifier.value = false;
+      }
+    });
+
     fetchBookingData();
   }
 

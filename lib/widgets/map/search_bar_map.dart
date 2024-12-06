@@ -46,31 +46,45 @@ class _SearchMapBarState extends State<SearchMapBar> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 270,
-      height: 36,
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Поиск',
-          hintStyle: GoogleFonts.montserrat(
-            color: const Color.fromARGB(255, 138, 138, 142),
+        width: 280,
+        height: 36,
+        child: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Поиск',
+            hintStyle: GoogleFonts.montserrat(
+              fontWeight: FontWeight.w500,
+              color: const Color.fromARGB(255, 114, 114, 114),
+            ),
+            prefixIcon: const Icon(
+              Icons.search,
+              color: Color.fromARGB(255, 114, 114, 114),
+            ),
+            filled: true,
+            fillColor: const Color.fromARGB(255, 255, 255, 255),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                color: Color.fromARGB(255, 200, 200, 200),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                color: Color.fromARGB(255, 200, 200, 200),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                color: Color.fromARGB(255, 200, 200, 200),
+              ),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
           ),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: Color.fromARGB(255, 138, 138, 142),
-          ),
-          filled: true,
-          fillColor: const Color.fromARGB(255, 235, 235, 235),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
-        ),
-        style: GoogleFonts.montserrat(fontSize: 14),
-        onSubmitted: (value) => _handleSubmit(),
-      ),
-    );
+          style: GoogleFonts.montserrat(fontSize: 14),
+          onSubmitted: (value) => _handleSubmit(),
+        ));
   }
 }

@@ -149,7 +149,7 @@ class _RestarauntCardState extends State<RestarauntCard> {
                             const SizedBox(width: 1),
                             const Icon(
                               Icons.star_rounded,
-                              color: Colors.orange,
+                              color: Color.fromARGB(255, 244, 160, 15),
                               size: 10,
                             ),
                             Text(

@@ -91,21 +91,113 @@ class _RestarauntBestDishesState extends State<RestarauntBestDishes> {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),
         child: const Center(
-            child: CircularProgressIndicator(color: Colors.orange)),
+            child: CircularProgressIndicator(
+                color: Color.fromARGB(255, 244, 160, 15))),
       );
     }
 
     if (restaurantData.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 10.0),
-        child: Center(
-            child: Text(
-          'Блюда не найдены.',
-          style: GoogleFonts.montserrat(
-              color: Color.fromARGB(255, 48, 48, 48),
-              fontSize: 18,
-              fontWeight: FontWeight.w600),
-        )),
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+            child: Row(
+              children: [
+                Text(
+                  "Блюда",
+                  style: GoogleFonts.montserrat(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                      color: const Color.fromARGB(255, 114, 114, 114)),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () => {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                DishesMenu(menuItems: _dishes),
+                          ),
+                        )
+                      },
+                      child: Text("Меню",
+                          style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: const Color.fromARGB(255, 114, 114, 114))),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Color.fromARGB(255, 114, 114, 114),
+                      size: 14,
+                    )
+                  ],
+                )
+              ],
+            ),
+          ),
+          const Divider(
+            indent: 15,
+            endIndent: 15,
+            height: 1,
+            color: Color.fromARGB(255, 235, 235, 235),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 5, 0),
+              child: Row(
+                children: [
+                  {
+                    "name": "Свиная рулька 'Швайнхаксе'",
+                    "cost": 45,
+                    "weight": 490,
+                    "rating": 4.8,
+                    "imageUrl":
+                        "https://firebasestorage.googleapis.com/v0/b/foodlis-1f062.appspot.com/o/images%2Fdishes%2F%D1%88%D0%B2%D0%B0%D0%B9%D0%BD%D1%85%D0%B0%D0%BA%D1%81%D0%B5.jpg?alt=media&token=666e4825-72c6-45ab-a676-1af01e4ee669"
+                  },
+                  {
+                    "name": "Антипасто",
+                    "cost": 45,
+                    "weight": 530,
+                    "rating": 4.4,
+                    "imageUrl":
+                        "https://firebasestorage.googleapis.com/v0/b/foodlis-1f062.appspot.com/o/images%2Fdishes%2F%D0%B0%D0%BD%D1%82%D0%B8%D0%BF%D0%B0%D1%81%D1%82%D0%BE.jpg?alt=media&token=e13d6005-0183-4035-9f93-5e14d6c08880"
+                  },
+                  {
+                    "name": "Закуска 'Октоберфест'",
+                    "cost": 65,
+                    "weight": 1000,
+                    "rating": 4.3,
+                    "imageUrl":
+                        "https://firebasestorage.googleapis.com/v0/b/foodlis-1f062.appspot.com/o/images%2Fdishes%2F%D0%BE%D0%BA%D1%82%D0%BE%D0%B1%D0%B5%D1%80%D1%84%D0%B5%D1%81%D1%82.jpg?alt=media&token=0abfb2bc-c88e-4412-ac28-2d2ed33149f4"
+                  }
+                ].asMap().entries.map((entry) {
+                  final restaurant = entry.value;
+                  final index = entry.key;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                        right: 10.0), // Добавлен отступ между карточками
+                    child: DishCard(
+                      name: restaurant['name'].toString(),
+                      imageUrl: restaurant['imageUrl'].toString(),
+                      top: index + 1,
+                      cost: (restaurant['cost'] as num?)?.toDouble() ?? 0.0,
+                      weight: (restaurant['weight'] as num?)?.toInt() ?? 0,
+                      rating: (restaurant['rating'] as num?)?.toDouble() ?? 0.0,
+                      width: 160,
+                      height: 200,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
       );
     }
 
@@ -130,7 +222,32 @@ class _RestarauntBestDishesState extends State<RestarauntBestDishes> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DishesMenu(menuItems: _dishes),
+                          builder: (context) => DishesMenu(menuItems: [
+                            {
+                              "name": "Свиная рулька 'Швайнхаксе'",
+                              "cost": 45,
+                              "weight": 490,
+                              "rating": 4.8,
+                              "imageUrl":
+                                  "https://firebasestorage.googleapis.com/v0/b/foodlis-1f062.appspot.com/o/images%2Fdishes%2F%D1%88%D0%B2%D0%B0%D0%B9%D0%BD%D1%85%D0%B0%D0%BA%D1%81%D0%B5.jpg?alt=media&token=666e4825-72c6-45ab-a676-1af01e4ee669"
+                            },
+                            {
+                              "name": "Антипасто",
+                              "cost": 45,
+                              "weight": 530,
+                              "rating": 4.4,
+                              "imageUrl":
+                                  "https://firebasestorage.googleapis.com/v0/b/foodlis-1f062.appspot.com/o/images%2Fdishes%2F%D0%B0%D0%BD%D1%82%D0%B8%D0%BF%D0%B0%D1%81%D1%82%D0%BE.jpg?alt=media&token=e13d6005-0183-4035-9f93-5e14d6c08880"
+                            },
+                            {
+                              "name": "Закуска 'Октоберфест'",
+                              "cost": 65,
+                              "weight": 1000,
+                              "rating": 4.3,
+                              "imageUrl":
+                                  "https://firebasestorage.googleapis.com/v0/b/foodlis-1f062.appspot.com/o/images%2Fdishes%2F%D0%BE%D0%BA%D1%82%D0%BE%D0%B1%D0%B5%D1%80%D1%84%D0%B5%D1%81%D1%82.jpg?alt=media&token=0abfb2bc-c88e-4412-ac28-2d2ed33149f4"
+                            }
+                          ]),
                         ),
                       )
                     },

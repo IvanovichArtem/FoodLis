@@ -181,6 +181,7 @@ class _MapScreenState extends State<MapScreen> {
         String videoUrl = data['videoUrl'];
         String restarauntType = data['restarauntType'];
         String imageUrlPath = data['imageUrl'];
+        int stock = data['stock'];
         final user = FirebaseAuth.instance.currentUser;
 
         String imageUrl =
@@ -213,7 +214,8 @@ class _MapScreenState extends State<MapScreen> {
           'instaUrl': data['instaUrl'],
           'restarauntType': restarauntType,
           'isToogle': isToogle,
-          'isVisible': true
+          'isVisible': true,
+          'stock': stock
         });
 
         // Добавляем маркер на карту
@@ -249,23 +251,9 @@ class _MapScreenState extends State<MapScreen> {
   void _showStock() {
     _showAll();
 
-    // Создание случайного генератора с seed=42 для воспроизводимости
-    final random = Random(42);
-
-    // Генерация списка случайных уникальных индексов (из 5 элементов)
-    Set<int> randomIndexes = {};
-    while (randomIndexes.length < 5) {
-      randomIndexes.add(random.nextInt(restarauntData.length));
-    }
-
-    // Проходим по всем элементам restaurantData и устанавливаем isVisible
     setState(() {
       for (int i = 0; i < restarauntData.length; i++) {
-        if (!randomIndexes.contains(i)) {
-          restarauntData[i]['isVisible'] = false;
-        } else {
-          restarauntData[i]['isVisible'] = true;
-        }
+        restarauntData[i]['isVisible'] = restarauntData[i]['stock'] != 0;
       }
     });
 
@@ -573,6 +561,7 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: RepaintBoundary(
         child: Scaffold(
+          backgroundColor: Colors.white,
           body: Stack(
             children: [
               IndexedStack(
@@ -976,21 +965,17 @@ class _MapAppBarState extends State<MapAppBar> {
       elevation: 0,
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.white,
-      automaticallyImplyLeading: true,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back),
-        onPressed: () => {widget.onButtonPressed()},
-        color: const Color.fromARGB(255, 48, 48, 48),
-      ),
+      automaticallyImplyLeading: false,
       flexibleSpace: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(49, 45, 0, 0),
+            padding: const EdgeInsets.fromLTRB(16, 45, 16, 0),
             child: Row(
               children: [
                 SearchMapBar(
                   onSearchResultsUpdated: widget.searchCallback,
                 ),
+                Spacer(),
                 IconButton(
                   onPressed: () => {},
                   icon: const Icon(Icons.share_outlined),

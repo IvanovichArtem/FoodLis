@@ -79,9 +79,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentIndex = 0;
 
   final List<Color> _backgroundColors = [
-    Colors.orange,
+    Color.fromARGB(255, 244, 160, 15),
     Colors.white,
-    Colors.orange,
+    Color.fromARGB(255, 244, 160, 15),
   ];
 
   @override
@@ -114,7 +114,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     'Рестораны на карте и в списке',
                     'Выбери свой формат поиска',
                     Color.fromARGB(255, 48, 48, 48),
-                    Colors.orange,
+                    Color.fromARGB(255, 244, 160, 15),
                   ),
                   _buildPage(
                     'assets/images/onboarding/экран3.png',
@@ -200,7 +200,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
             side: _currentIndex == 1 // Условие для обводки, если index == 1
-                ? const BorderSide(color: Colors.orange, width: 1)
+                ? const BorderSide(
+                    color: Color.fromARGB(255, 244, 160, 15), width: 1)
                 : BorderSide.none,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30), // закругленные углы
@@ -225,7 +226,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             text,
             style: GoogleFonts.montserrat(
               fontSize: 16,
-              color: Colors.orange,
+              color: Color.fromARGB(255, 244, 160, 15),
               fontWeight: FontWeight.bold,
             ),
           ),

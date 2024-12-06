@@ -43,7 +43,7 @@ class _RestarauntInfoState extends State<RestarauntInfo> {
             children: [
               Container(
                 height: 76,
-                width: 150,
+                width: 140,
                 decoration: const BoxDecoration(
                   color: Color.fromARGB(255, 243, 243, 243),
                   borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -164,7 +164,7 @@ class _RestarauntInfoState extends State<RestarauntInfo> {
               ),
               Container(
                 height: 30,
-                width: 178,
+                width: 168,
                 alignment: Alignment.center,
                 decoration: const BoxDecoration(
                   color: Color.fromARGB(255, 243, 243, 243),

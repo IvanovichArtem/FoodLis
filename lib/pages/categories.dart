@@ -35,10 +35,10 @@ class _CategoiresState extends State<Categoires> {
 
             // Здесь кухни
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15),
+              padding: EdgeInsets.symmetric(horizontal: 10),
               child: Row(
                 mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween, // Распределение с краями
+                    MainAxisAlignment.spaceEvenly, // Распределение с краями
                 children: [
                   KitchenItem(
                     id: 'Завтрак',
@@ -69,10 +69,10 @@ class _CategoiresState extends State<Categoires> {
               ),
             ),
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               child: Row(
                 mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween, // Распределение с краями
+                    MainAxisAlignment.spaceEvenly, // Распределение с краями
                 children: [
                   Column(
                     children: [
@@ -120,9 +120,9 @@ class _CategoiresState extends State<Categoires> {
               ),
             ),
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   KitchenItem(
                     id: 'Кофе',

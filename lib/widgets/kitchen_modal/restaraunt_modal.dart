@@ -172,13 +172,19 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                             ),
                             Padding(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: horizontalPadding * 0.75),
-                              child: RestarauntInfo(
-                                restarauntType: widget.restarauntType,
-                                rating_count: widget.cntReviews,
-                                ratingMean: widget.avgReview,
-                                closingDate: widget.endTime,
-                                meanCost: widget.avgPrice,
+                                  horizontal: horizontalPadding * 0.0),
+                              child: Row(
+                                children: [
+                                  Spacer(),
+                                  RestarauntInfo(
+                                    restarauntType: widget.restarauntType,
+                                    rating_count: widget.cntReviews,
+                                    ratingMean: widget.avgReview,
+                                    closingDate: widget.endTime,
+                                    meanCost: widget.avgPrice,
+                                  ),
+                                  Spacer(),
+                                ],
                               ),
                             ),
                             Padding(
@@ -294,7 +300,7 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                               ? Icons.bookmark
                               : Icons.bookmark_border_rounded,
                           color: iconState
-                              ? Colors.orange
+                              ? Color.fromARGB(255, 244, 160, 15)
                               : const Color.fromARGB(255, 175, 175, 175),
                           size: iconSize, // Адаптивный размер иконки
                         ),

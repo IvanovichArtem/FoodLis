@@ -45,6 +45,7 @@ flutter:
     - assets/svg/
     - assets/images/fox.jpg
     - assets/images/error_page.svg
+    - assets/images/logo.png
     - assets/icons/
     - assets/images/kitchens/
     - assets/images/onboarding/экран1.png

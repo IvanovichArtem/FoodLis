@@ -5,6 +5,7 @@ import 'package:food_lis/widgets/bottom_sheet/custom_toogle_switch.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:food_lis/notifiers/booking_notifier.dart';
 
 class Booking extends StatefulWidget {
   final String restId;
@@ -23,6 +24,7 @@ class _BookingState extends State<Booking> {
   ScrollController _scrollController = ScrollController();
   List<bool> _selectedItems = [false, false, false];
   ValueNotifier<bool> isSelectedBirthday = ValueNotifier(true);
+  bool isLoading = false; // Добавлено состояние загрузки
 
   @override
   void initState() {
@@ -36,11 +38,16 @@ class _BookingState extends State<Booking> {
   }
 
   void booking(BuildContext context, String restId) async {
-    // Получаем текущего пользователя из FirebaseAuth
+    setState(() {
+      isLoading = true; // Показываем экран загрузки
+    });
+
     User? user = FirebaseAuth.instance.currentUser;
 
-    // Проверяем, если пользователь не найден
     if (user == null) {
+      setState(() {
+        isLoading = false; // Скрываем экран загрузки
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Пожалуйста, войдите в систему!'),
@@ -50,15 +57,16 @@ class _BookingState extends State<Booking> {
       return;
     }
 
-    String userId = user.uid; // Получаем userId (UID пользователя)
+    String userId = user.uid;
 
-    // Проверяем на null
     if (selectedDate == null ||
         selectedTime == null ||
         selectedGuests == null ||
         _selectedItems == null ||
         isSelectedBirthday == null) {
-      // Если какой-то параметр null, выводим SnackBar с ошибкой
+      setState(() {
+        isLoading = false; // Скрываем экран загрузки
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Все параметры должны быть заполнены!'),
@@ -68,8 +76,10 @@ class _BookingState extends State<Booking> {
       return;
     }
 
-    // Проверяем значение selectedGuests на диапазон от 1 до 7
     if (selectedGuests < 1 || selectedGuests > 7) {
+      setState(() {
+        isLoading = false; // Скрываем экран загрузки
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Количество гостей должно быть от 1 до 7!'),
@@ -79,37 +89,36 @@ class _BookingState extends State<Booking> {
       return;
     }
 
-    // Подготовка данных для записи в Firebase
     Map<String, dynamic> bookingData = {
       'restId': restId,
       'userId': userId,
-      'selectedDate':
-          selectedDate.toIso8601String(), // Преобразуем дату в строку
-      'selectedTime': selectedTime, // Здесь теперь просто строка
+      'selectedDate': selectedDate.toIso8601String(),
+      'selectedTime': selectedTime,
       'selectedGuests': selectedGuests,
       'isSelectedBirthday': isSelectedBirthday.value,
-      'selectedPlace': _selectedItems, // Массив с тремя bool значениями
+      'selectedPlace': _selectedItems,
     };
 
     try {
-      // Пытаемся записать данные в Firestore
       await FirebaseFirestore.instance.collection('bookings').add(bookingData);
 
-      // Если все окей, показываем новый виджет успеха
-      showDialog(
-        context: context,
-        builder: (_) => Dialog(
-          child: SuccessWidget(), // Новый виджет для успешного бронирования
-        ),
+      setState(() {
+        isLoading = false; // Скрываем экран загрузки
+      });
+
+      // Уведомляем первый виджет об обновлении
+      bookingUpdatedNotifier.value = true;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => SuccessScreen()),
       );
     } catch (e) {
-      // Если произошла ошибка при записи в Firebase
-      print('Error: $e');
-      showDialog(
-        context: context,
-        builder: (_) => Dialog(
-          child: ErrorWidget(), // Новый виджет для ошибки при бронировании
-        ),
+      setState(() {
+        isLoading = false; // Скрываем экран загрузки
+      });
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => ErrorScreen()),
       );
     }
   }
@@ -124,7 +133,7 @@ class _BookingState extends State<Booking> {
       },
       child: Container(
         width: 100, // Уменьшаем ширину для сокращения расстояния по бокам
-        height: 160,
+        height: 180,
         margin:
             const EdgeInsets.symmetric(horizontal: 4), // Симметричные отступы
         decoration: BoxDecoration(
@@ -132,11 +141,12 @@ class _BookingState extends State<Booking> {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             AnimatedScale(
               scale: _selectedItems[index]
-                  ? 1.1
+                  ? 1.05
                   : 1.0, // Анимация изменения масштаба
               duration: const Duration(milliseconds: 200), // Плавность
               child: Container(
@@ -146,9 +156,9 @@ class _BookingState extends State<Booking> {
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: _selectedItems[index]
-                        ? Colors.orange
+                        ? Color.fromARGB(255, 244, 160, 15)
                         : Colors.transparent, // Обводка только на картинке
-                    width: 2,
+                    width: 3,
                   ),
                   borderRadius:
                       BorderRadius.circular(15), // Обводка с закруглением
@@ -182,6 +192,18 @@ class _BookingState extends State<Booking> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      // Экран загрузки
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color.fromARGB(255, 244, 160, 15),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -206,10 +228,6 @@ class _BookingState extends State<Booking> {
                       fontWeight: FontWeight.bold,
                       color: Color.fromARGB(255, 48, 48, 48))),
               SizedBox(height: 10),
-              Divider(
-                color: Colors.grey,
-                height: 2,
-              ),
               SizedBox(
                 height: 15,
               ),
@@ -238,7 +256,7 @@ class _BookingState extends State<Booking> {
                             EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
                           color: selectedDate.day == date.day
-                              ? Colors.orange
+                              ? Color.fromARGB(255, 244, 160, 15)
                               : Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -299,12 +317,12 @@ class _BookingState extends State<Booking> {
                   return ChoiceChip(
                     showCheckmark: false,
                     backgroundColor: selectedTime == timeSlots[index]
-                        ? Colors.orange
+                        ? Color.fromARGB(255, 244, 160, 15)
                         : Colors.white,
                     labelStyle: GoogleFonts.montserrat(
                       color: selectedTime == timeSlots[index]
                           ? Colors.white
-                          : Colors.orange,
+                          : Color.fromARGB(255, 244, 160, 15),
                     ),
                     label: Text(timeSlots[index]),
                     selected: selectedTime == timeSlots[index],
@@ -313,12 +331,12 @@ class _BookingState extends State<Booking> {
                         selectedTime = selected ? timeSlots[index] : null;
                       });
                     },
-                    selectedColor: Colors.orange,
+                    selectedColor: Color.fromARGB(255, 244, 160, 15),
                     shape: RoundedRectangleBorder(
                       side: BorderSide(
                         color: selectedTime == timeSlots[index]
-                            ? Colors.orange
-                            : Colors.orange,
+                            ? Color.fromARGB(255, 244, 160, 15)
+                            : Color.fromARGB(255, 244, 160, 15),
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(20),
@@ -350,7 +368,8 @@ class _BookingState extends State<Booking> {
                   return ChoiceChip(
                     showCheckmark: false,
                     backgroundColor: selectedGuests == guestSlots[index]
-                        ? Colors.orange // Выбранный элемент — оранжевый фон
+                        ? Color.fromARGB(255, 244, 160,
+                            15) // Выбранный элемент — оранжевый фон
                         : Colors.white, // Не выбранный элемент — белый фон
                     labelStyle: GoogleFonts.montserrat(
                       color: selectedGuests == int.parse(guestSlots[index])
@@ -367,12 +386,12 @@ class _BookingState extends State<Booking> {
                             selected ? int.parse(guestSlots[index]) : 1;
                       });
                     },
-                    selectedColor: Colors.orange,
+                    selectedColor: Color.fromARGB(255, 244, 160, 15),
                     shape: RoundedRectangleBorder(
                       side: BorderSide(
                         color: selectedGuests == int.parse(guestSlots[index])
-                            ? Colors.orange
-                            : Colors.orange,
+                            ? Color.fromARGB(255, 244, 160, 15)
+                            : Color.fromARGB(255, 244, 160, 15),
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -437,21 +456,26 @@ class _BookingState extends State<Booking> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(
+                  Expanded(
+                    child: ElevatedButton(
                       style: ButtonStyle(
-                          backgroundColor:
-                              WidgetStatePropertyAll(Colors.orange)),
+                        backgroundColor: MaterialStateProperty.all(
+                            Color.fromARGB(255, 244, 160, 15)),
+                      ),
                       onPressed: () => booking(
-                            context,
-                            widget.restId,
-                          ),
+                        context,
+                        widget.restId,
+                      ),
                       child: Text(
                         "Забронировать",
                         style: GoogleFonts.montserrat(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500),
-                      )),
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               )
             ],
@@ -463,44 +487,145 @@ class _BookingState extends State<Booking> {
 }
 
 // Виджет для успешного бронирования
-class SuccessWidget extends StatelessWidget {
+class SuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20),
-      color: Colors.green,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check_circle, color: Colors.white, size: 50),
-          SizedBox(height: 20),
-          Text(
-            'Бронирование успешно!',
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-        ],
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Image.asset(
+              'assets/images/booking/success.jpg',
+              width: double.infinity, // Укажите путь к изображению
+              height: 500, // Увеличение высоты изображения
+              fit: BoxFit.cover,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 15.5),
+              child: Text(
+                'Успех!',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Text(
+                'Ваш столик успешно забронирован! Заказ отобразиться в профиле.',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color.fromARGB(255, 244, 160, 15),
+                  padding: EdgeInsets.symmetric(vertical: 15),
+                ),
+                child: Text(
+                  'Перейти на главный экран',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 // Виджет для ошибки при бронировании
-class ErrorWidget extends StatelessWidget {
+class ErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20),
-      color: Colors.red,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.error, color: Colors.white, size: 50),
-          SizedBox(height: 20),
-          Text(
-            'Ошибка при бронировании!',
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-        ],
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.all(0.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 200, 20, 0),
+              child: Align(
+                alignment: Alignment
+                    .centerLeft, // Позиционируем изображение в верхней части
+                child: Image.asset(
+                  'assets/images/booking/error.jpg',
+                  height: 300,
+                  fit: BoxFit.fitWidth,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 15.5),
+              child: Text(
+                'Что-то не так!',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Text(
+                'Повторите попытку бронирования, если проблема сохранилась, обратитесь в тех поддержку',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 244, 160, 15),
+                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 16),
+                  ),
+                  child: Text(
+                    'Попробовать снова',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

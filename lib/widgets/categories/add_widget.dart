@@ -37,7 +37,7 @@ class _HorizontalScrollAddWidgetState extends State<HorizontalScrollAddWidget> {
           effect: WormEffect(
             dotHeight: 8,
             dotWidth: 8,
-            activeDotColor: Colors.orange,
+            activeDotColor: Color.fromARGB(255, 244, 160, 15),
             dotColor: Colors.grey,
           ),
         ),

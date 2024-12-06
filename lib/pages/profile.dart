@@ -11,11 +11,20 @@ import 'package:flutter_svg/flutter_svg.dart';
 class Profile extends StatefulWidget {
   const Profile({super.key});
 
+  static final GlobalKey<_ProfileState> profileKey = GlobalKey<_ProfileState>();
+
   @override
   State<Profile> createState() => _ProfileState();
 }
 
 class _ProfileState extends State<Profile> {
+  void reinitializeProfile() {
+    setState(() {
+      // Добавьте действия для реинициализации, если нужно
+      // Например, очистка или обновление данных
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

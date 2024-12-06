@@ -18,7 +18,7 @@ class _SwitchButtonsState extends State<SwitchButtons> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange),
+        border: Border.all(color: Color.fromARGB(255, 244, 160, 15)),
       ),
       child: Stack(
         children: [
@@ -33,7 +33,7 @@ class _SwitchButtonsState extends State<SwitchButtons> {
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               decoration: BoxDecoration(
-                color: Colors.orange,
+                color: Color.fromARGB(255, 244, 160, 15),
                 borderRadius: BorderRadius.circular(5),
               ),
             ),
@@ -64,7 +64,9 @@ class _SwitchButtonsState extends State<SwitchButtons> {
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.fastEaseInToSlowEaseOut,
                       style: GoogleFonts.montserrat(
-                        color: isOutsideSelected ? Colors.white : Colors.orange,
+                        color: isOutsideSelected
+                            ? Colors.white
+                            : Color.fromARGB(255, 244, 160, 15),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -97,8 +99,9 @@ class _SwitchButtonsState extends State<SwitchButtons> {
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.fastEaseInToSlowEaseOut,
                       style: GoogleFonts.montserrat(
-                        color:
-                            !isOutsideSelected ? Colors.white : Colors.orange,
+                        color: !isOutsideSelected
+                            ? Colors.white
+                            : Color.fromARGB(255, 244, 160, 15),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),

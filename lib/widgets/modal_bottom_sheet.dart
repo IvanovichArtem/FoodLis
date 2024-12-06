@@ -93,19 +93,16 @@ class __BottomSheetContentState extends State<_BottomSheetContent> {
       return item;
     }).toList());
 
-    // Переход на MapScreen с обновленными результатами
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => MapScreen(
-    //       initialIndex: 1,
-    //       data: updatedResults,
-    //       isSearch: true,
-    //     ),
-    //   ),
-    // );
-
-    widget.closeBottomSheet(context); // закрытие BottomSheet
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapScreen(
+          initialIndex: 1,
+          data: updatedResults,
+          isSearch: true,
+        ),
+      ),
+    );
   }
 
   void resetStates() {

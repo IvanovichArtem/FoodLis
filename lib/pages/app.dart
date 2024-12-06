@@ -16,7 +16,7 @@ class MyAppPage extends StatefulWidget {
 
 class _MyAppPageState extends State<MyAppPage> {
   int _selectedIndex = 0;
-  final PageController _pageController = PageController();
+  int _navigationCount = 0; // Счетчик переходов
   late List<Widget> _pages;
 
   void onAllRest() {
@@ -25,8 +25,8 @@ class _MyAppPageState extends State<MyAppPage> {
         initialIndex: 1,
         data: [],
         isSearch: false,
-      ); // Обновляем индекс карты
-      _onItemTapped(1); // Переходим на экран карты
+      );
+      _onItemTapped(1);
     });
   }
 
@@ -36,8 +36,8 @@ class _MyAppPageState extends State<MyAppPage> {
         initialIndex: 1,
         data: [],
         isSearch: true,
-      ); // Обновляем индекс карты
-      _onItemTapped(1); // Переходим на экран карты
+      );
+      _onItemTapped(1);
     });
   }
 
@@ -45,24 +45,27 @@ class _MyAppPageState extends State<MyAppPage> {
   void initState() {
     super.initState();
 
-    // Вызываем загрузку данных при инициализации
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DataProvider>(context, listen: false).fetchRestaurantData();
     });
 
-    // Инициализируем список экранов
+    _initPages();
+  }
+
+  void _initPages() {
+    // Метод для инициализации всех страниц
     _pages = [
       Categoires(
         onSearch: onSearch,
         onAllRest: onAllRest,
       ),
       MapScreen(
-        key: ValueKey<int>(0),
         initialIndex: 0,
         data: const [],
         isSearch: false,
-      ), // Обновляем MapScreen с новым ключом
-      const Chel(),
+      ),
+      Chel(),
+      // Chel(isActive: _selectedIndex == 2),
       const Profile(),
     ];
   }
@@ -70,31 +73,28 @@ class _MyAppPageState extends State<MyAppPage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-    });
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut, // Плавная анимация
-    );
-  }
+      _navigationCount++; // Увеличиваем счетчик переходов
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+      // Проверяем, если счетчик достиг 10
+      if (_navigationCount >= 10) {
+        // Обновляем данные и реинициализируем страницы
+        Provider.of<DataProvider>(context, listen: false)
+            .fetchRestaurantData()
+            .then((_) {
+          setState(() {
+            _initPages(); // Реинициализируем страницы
+            _navigationCount = 0; // Сбрасываем счетчик
+          });
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(), // Отключаем свайпы
-        onPageChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+      body: IndexedStack(
+        index: _selectedIndex,
         children: _pages,
       ),
       bottomNavigationBar: BottomNavBar(
